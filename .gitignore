@@ -17,3 +17,4 @@ DECISIONS.md
 .env
 .venv/
 venv/
+.DS_Store
