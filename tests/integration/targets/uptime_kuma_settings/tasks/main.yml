@@ -52,4 +52,4 @@
         api_password: "{{ uptime_kuma_api_password }}"
         keep_data_period_days: 180
         state: present
-      ignore_errors: true
+      failed_when: false

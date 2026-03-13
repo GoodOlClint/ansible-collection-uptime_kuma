@@ -32,14 +32,16 @@ sys.path.insert(0, REPO_ROOT)
 import plugins.module_utils.uptime_kuma_api as real_api  # noqa: E402
 
 # Create the namespace chain
-sys.modules["ansible_collections"] = type(sys)("ansible_collections")
-sys.modules["ansible_collections"].__path__ = []
-sys.modules["ansible_collections.goodolclint"] = type(sys)("ansible_collections.goodolclint")
-sys.modules["ansible_collections.goodolclint"].__path__ = []
-sys.modules["ansible_collections.goodolclint.uptime_kuma"] = type(sys)("ansible_collections.goodolclint.uptime_kuma")
-sys.modules["ansible_collections.goodolclint.uptime_kuma"].__path__ = []
-sys.modules["ansible_collections.goodolclint.uptime_kuma.plugins"] = type(sys)("ansible_collections.goodolclint.uptime_kuma.plugins")
-sys.modules["ansible_collections.goodolclint.uptime_kuma.plugins"].__path__ = []
-sys.modules["ansible_collections.goodolclint.uptime_kuma.plugins.module_utils"] = type(sys)("ansible_collections.goodolclint.uptime_kuma.plugins.module_utils")
-sys.modules["ansible_collections.goodolclint.uptime_kuma.plugins.module_utils"].__path__ = []
-sys.modules["ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kuma_api"] = real_api
+_ns = type(sys)
+
+_PKG = "ansible_collections"
+_GCOL = f"{_PKG}.goodolclint"
+_UK = f"{_GCOL}.uptime_kuma"
+_PLUG = f"{_UK}.plugins"
+_MU = f"{_PLUG}.module_utils"
+
+for _name in (_PKG, _GCOL, _UK, _PLUG, _MU):
+    sys.modules[_name] = _ns(_name)
+    sys.modules[_name].__path__ = []
+
+sys.modules[f"{_MU}.uptime_kuma_api"] = real_api

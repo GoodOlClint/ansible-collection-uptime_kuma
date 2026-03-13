@@ -76,7 +76,7 @@
         api_password: "{{ uptime_kuma_api_password }}"
         name: integration-test-monitor-for-tag
         state: absent
-      ignore_errors: true
+      failed_when: false
 
     - name: Cleanup tag
       goodolclint.uptime_kuma.uptime_kuma_tag:
@@ -85,4 +85,4 @@
         api_password: "{{ uptime_kuma_api_password }}"
         name: integration-test-monitor-tag
         state: absent
-      ignore_errors: true
+      failed_when: false

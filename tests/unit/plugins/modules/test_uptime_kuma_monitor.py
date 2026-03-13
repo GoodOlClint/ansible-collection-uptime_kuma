@@ -9,9 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 sys.path.insert(0, ".")
 

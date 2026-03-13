@@ -2,6 +2,9 @@
 namespace: goodolclint
 name: uptime_kuma
 version: 0.1.0
+readme: README.md
+authors:
+  - Clint Branham <goodolclint@gmail.com>
 description: Ansible collection for managing Uptime Kuma monitors via its API
 license:
   - GPL-3.0-or-later

@@ -10,9 +10,6 @@ __metaclass__ = type
 
 import sys
 from enum import Enum
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 # Ensure the collection path is importable
 sys.path.insert(0, ".")
