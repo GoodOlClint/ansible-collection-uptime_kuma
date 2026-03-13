@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: uptime_kuma
+  author: Clint Branham
+  description: Configure Uptime Kuma monitors, notifications, tags, and status pages
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.14"
+  platforms:
+    - name: GenericLinux
+      versions:
+        - all
+  galaxy_tags:
+    - uptime-kuma
+    - monitoring
+    - automation
+dependencies: []
