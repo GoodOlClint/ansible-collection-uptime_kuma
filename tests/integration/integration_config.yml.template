@@ -1,0 +1,6 @@
+---
+# Integration test configuration for goodolclint.uptime_kuma
+# Copy to integration_config.yml and set values for your Uptime Kuma instance
+uptime_kuma_api_url: "http://localhost:3001"
+uptime_kuma_api_username: "admin"
+uptime_kuma_api_password: "secret123"
