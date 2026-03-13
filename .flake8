@@ -5,3 +5,5 @@ exclude =
     __pycache__,
     build,
     dist
+per-file-ignores =
+    plugins/modules/*.py:E402
