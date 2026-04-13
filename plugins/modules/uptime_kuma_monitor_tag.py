@@ -52,12 +52,10 @@ options:
     description:
       - Password for authentication.
     type: str
-    no_log: true
   api_token:
     description:
       - Login token for authentication.
     type: str
-    no_log: true
   validate_certs:
     description:
       - Whether to validate SSL certificates.

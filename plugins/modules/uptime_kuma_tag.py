@@ -49,13 +49,11 @@ options:
       - Password for authentication.
       - Not required if O(api_token) is provided or authentication is disabled.
     type: str
-    no_log: true
   api_token:
     description:
       - Login token for authentication.
       - Mutually exclusive with O(api_username)/O(api_password).
     type: str
-    no_log: true
   validate_certs:
     description:
       - Whether to validate SSL certificates.

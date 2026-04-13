@@ -51,7 +51,6 @@ options:
     description:
       - Steam Web API key for monitoring Steam game servers.
     type: str
-    no_log: true
   dns_cache:
     description:
       - Enable DNS caching.
@@ -74,7 +73,6 @@ options:
     description:
       - Current password, required when changing O(disable_auth).
     type: str
-    no_log: true
   state:
     description:
       - C(present) updates settings to match specified values.
@@ -95,12 +93,10 @@ options:
     description:
       - Password for authentication.
     type: str
-    no_log: true
   api_token:
     description:
       - Login token for authentication.
     type: str
-    no_log: true
   validate_certs:
     description:
       - Whether to validate SSL certificates.

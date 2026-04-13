@@ -145,7 +145,6 @@ options:
     description:
       - Password for MQTT monitor.
     type: str
-    no_log: true
   mqtt_topic:
     description:
       - MQTT topic to subscribe to.
@@ -158,7 +157,6 @@ options:
     description:
       - Connection string for database monitors (SQL Server, PostgreSQL, MySQL, MongoDB, Redis).
     type: str
-    no_log: true
   database_query:
     description:
       - SQL query for SQL Server, PostgreSQL, and MySQL monitors.
@@ -204,12 +202,10 @@ options:
     description:
       - Password for authentication.
     type: str
-    no_log: true
   api_token:
     description:
       - Login token for authentication.
     type: str
-    no_log: true
   validate_certs:
     description:
       - Whether to validate SSL certificates.

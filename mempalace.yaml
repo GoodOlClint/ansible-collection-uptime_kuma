@@ -1,0 +1,7 @@
+wing: ansible
+rooms:
+- name: uptime_kuma
+  description: All files from ansible-collection-uptime_kuma
+  keywords: [uptime_kuma, ansible-collection-uptime_kuma]
+- name: general
+  description: Fallback
