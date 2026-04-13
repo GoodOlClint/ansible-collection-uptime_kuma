@@ -1,0 +1,65 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+jobs:
+  claude-review:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: 'dependabot[bot]'
+          track_progress: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request for the Uptime Kuma monitoring Ansible collection.
+
+            Focus areas:
+            1. **Idempotency** — Modules must be idempotent. A second run with
+               the same parameters must return changed=false. Verify proper
+               existence checks and state comparison before making changes.
+            2. **check_mode and diff_mode** — All modules must support
+               check_mode (dry run) and diff_mode (show before/after). Flag
+               any module missing these.
+            3. **stdlib-only HTTP** — No third-party HTTP libraries (requests,
+               httpx, etc.). All HTTP must use Python stdlib (urllib, json,
+               http.client). This is a hard constraint.
+            4. **DOCUMENTATION blocks** — Every module must have complete
+               DOCUMENTATION, EXAMPLES, and RETURN blocks. No stubs or
+               placeholders.
+            5. **Error handling** — API errors must be scrubbed of credentials
+               before being returned. Use module.fail_json with meaningful
+               messages. Never expose API keys or tokens in error output.
+            6. **Module naming** — Modules follow the pattern
+               uptime_kuma_<resource>.py in plugins/modules/.
+            7. **Tests** — New modules need integration test targets and unit
+               tests. Unit test coverage >80% on module_utils.
+            8. **Pagination** — API responses that support pagination must be
+               handled. Do not silently return partial results.
+            9. **Conventional commits** — Commit messages should follow
+               conventional commit format (feat:, fix:, test:, docs:, chore:).
+
+            Provide inline comments for specific issues and a summary comment
+            for general observations. Skip nitpicks unless they indicate a
+            real problem.
+
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
