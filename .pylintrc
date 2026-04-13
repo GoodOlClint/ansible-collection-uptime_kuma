@@ -1,0 +1,20 @@
+[MAIN]
+ignore-patterns=test_.*\.py
+
+[MESSAGES CONTROL]
+disable=
+    too-many-public-methods,
+    use-dict-literal,
+    invalid-name,
+    import-error,
+    broad-exception-caught,
+    wrong-import-position,
+    missing-module-docstring,
+    too-many-return-statements,
+    too-many-branches,
+    too-many-locals,
+    too-many-statements,
+    duplicate-code
+
+[FORMAT]
+max-line-length=120

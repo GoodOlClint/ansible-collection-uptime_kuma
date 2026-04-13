@@ -1,0 +1,98 @@
+---
+- name: Test uptime_kuma_tag module
+  block:
+    # ── CREATE ────────────────────────────────────────────────────────
+    - name: Create a tag
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_username: "{{ uptime_kuma_api_username }}"
+        api_password: "{{ uptime_kuma_api_password }}"
+        name: integration-test-tag
+        color: "#ff0000"
+        state: present
+      register: create_result
+
+    - name: Verify tag was created
+      ansible.builtin.assert:
+        that:
+          - create_result is changed
+          - create_result.tag.name == "integration-test-tag"
+          - create_result.tag.color == "#ff0000"
+
+    # ── IDEMPOTENCY ───────────────────────────────────────────────────
+    - name: Create same tag again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_username: "{{ uptime_kuma_api_username }}"
+        api_password: "{{ uptime_kuma_api_password }}"
+        name: integration-test-tag
+        color: "#ff0000"
+        state: present
+      register: idem_result
+
+    - name: Verify no change on second run
+      ansible.builtin.assert:
+        that:
+          - idem_result is not changed
+
+    # ── UPDATE ────────────────────────────────────────────────────────
+    - name: Update tag colour
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_username: "{{ uptime_kuma_api_username }}"
+        api_password: "{{ uptime_kuma_api_password }}"
+        name: integration-test-tag
+        color: "#00ff00"
+        state: present
+      register: update_result
+
+    - name: Verify tag was updated
+      ansible.builtin.assert:
+        that:
+          - update_result is changed
+
+    # ── CHECK MODE ────────────────────────────────────────────────────
+    - name: Delete tag in check mode
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_username: "{{ uptime_kuma_api_username }}"
+        api_password: "{{ uptime_kuma_api_password }}"
+        name: integration-test-tag
+        state: absent
+      check_mode: true
+      register: check_delete
+
+    - name: Verify check mode reports change
+      ansible.builtin.assert:
+        that:
+          - check_delete is changed
+
+    # ── DELETE ─────────────────────────────────────────────────────────
+    - name: Delete tag
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_username: "{{ uptime_kuma_api_username }}"
+        api_password: "{{ uptime_kuma_api_password }}"
+        name: integration-test-tag
+        state: absent
+      register: delete_result
+
+    - name: Verify tag was deleted
+      ansible.builtin.assert:
+        that:
+          - delete_result is changed
+
+    # ── DELETE IDEMPOTENCY ────────────────────────────────────────────
+    - name: Delete tag again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_username: "{{ uptime_kuma_api_username }}"
+        api_password: "{{ uptime_kuma_api_password }}"
+        name: integration-test-tag
+        state: absent
+      register: delete_idem
+
+    - name: Verify no change on second delete
+      ansible.builtin.assert:
+        that:
+          - delete_idem is not changed

@@ -1,0 +1,47 @@
+---
+# Connection settings
+uptime_kuma_api_url: "http://localhost:3001"
+uptime_kuma_api_username: ""
+uptime_kuma_api_password: ""
+uptime_kuma_api_token: ""
+uptime_kuma_validate_certs: true
+uptime_kuma_api_timeout: 10
+
+# Resources to manage (lists of dicts)
+uptime_kuma_tags: []
+# - name: production
+#   color: "#ff0000"
+#   state: present
+
+uptime_kuma_monitors: []
+# - name: My Website
+#   monitor_type: http
+#   url: https://example.com
+#   interval: 60
+#   state: present
+
+uptime_kuma_notifications: []
+# - name: Slack Alerts
+#   notification_type: slack
+#   notification_config:
+#     slackwebhookURL: https://hooks.slack.com/services/XXX
+#   state: present
+
+uptime_kuma_status_pages: []
+# - slug: my-services
+#   title: My Services Status
+#   state: present
+
+uptime_kuma_maintenances: []
+# - title: Weekly Backup
+#   strategy: manual
+#   state: present
+
+uptime_kuma_api_keys: []
+# - name: ci-key
+#   active: true
+#   state: present
+
+uptime_kuma_settings: {}
+# check_update: false
+# keep_data_period_days: 90
