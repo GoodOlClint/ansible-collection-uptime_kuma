@@ -116,10 +116,10 @@ ansible-test integration --docker
 
 ## Release Procedure
 
-Releases are cut by the operator only (review prompt rule 9: version bumps in any other PR are blockers).
+Releases are cut by the operator only; the review prompt treats a version bump in any other PR as a blocker.
 
-1. Update `version` in galaxy.yml and add the release section to CHANGELOG.rst, in a PR titled `chore: release vX.Y.Z`.
+1. In a PR titled `chore: release vX.Y.Z`: update `version` in galaxy.yml and run `antsibull-changelog release`, which folds `changelogs/fragments/` into CHANGELOG.rst.
 2. Merge, then tag the merge commit: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-3. The Release workflow verifies the tag matches galaxy.yml, builds, publishes to Ansible Galaxy with the `GALAXY_API_KEY` repository secret, and creates a GitHub Release with the tarball.
+3. The Release workflow verifies the tag matches galaxy.yml and that CHANGELOG.rst has a section for it, builds, publishes to Ansible Galaxy with the `GALAXY_API_KEY` repository secret, and creates a GitHub Release with the tarball.
 
 One-time setup: sign in to https://galaxy.ansible.com with GitHub (this creates the `goodolclint` namespace), generate an API token under Collections → API token, and store it as the `GALAXY_API_KEY` secret on this repository.
