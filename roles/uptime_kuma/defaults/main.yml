@@ -16,7 +16,7 @@ uptime_kuma_monitor_defaults: {}
 #   interval: 60
 #   max_retries: 2
 #   timeout: 16
-#   notification_names: ["ntfy (homelab alerts)"]
+#   notification_names: ["ntfy alerts"]
 
 # Resources to manage (lists of dicts)
 uptime_kuma_tags: []

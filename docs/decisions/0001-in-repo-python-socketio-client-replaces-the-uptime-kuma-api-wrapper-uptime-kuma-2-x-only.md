@@ -3,11 +3,11 @@
 - **Status:** Approved
 - **Date:** 2026-08-23
 - **Deciders:** operator + agent
-- **Context source:** docs/homelab-gap-report.md · CONTRIBUTING.md ADR-001 · live probe of the homelab instance (2026-08-23)
+- **Context source:** CONTRIBUTING.md ADR-001 · gap analysis against the operator's deployment (kept in that deployment's repo) · live probe of a 2.x instance (2026-08-23)
 
 ## Context
 
-CONTRIBUTING.md ADR-001 chose Option B: depend on the `uptime-kuma-api` pip wrapper rather than write a Socket.IO client. That wrapper (lucasheld, last release 1.2.1, September 2023) documents support for Uptime Kuma 1.21.3–1.23.2 only and has had no commits in three years. The only consumer of this collection runs `louislam/uptime-kuma:2`. A live probe showed the wrapper connects and logs in against 2.x only with a 30s timeout, and its monitor/settings builders gate fields on `info.version`, which 2.x withholds before login.
+CONTRIBUTING.md ADR-001 chose Option B: depend on the `uptime-kuma-api` pip wrapper rather than write a Socket.IO client. That wrapper (lucasheld, last release 1.2.1, September 2023) documents support for Uptime Kuma 1.21.3–1.23.2 only and has had no commits in three years. The only known consumer of this collection runs `louislam/uptime-kuma:2`. A live probe showed the wrapper connects and logs in against 2.x only with a 30s timeout, and its monitor/settings builders gate fields on `info.version`, which 2.x withholds before login.
 
 The v2 fork (`exaland/uptime-kuma-api-v2`) targets 2.0.0-beta.2, has two substantive commits in 14 months, and is single-maintainer. It moves the pin; it does not remove the risk.
 
@@ -34,6 +34,6 @@ Payload shapes and event names are pinned by integration tests that run in CI ag
 
 - CONTRIBUTING.md ADR-001 is superseded by this record; README Requirements change from `uptime-kuma-api` to `python-socketio[client]`.
 - CI gains a `louislam/uptime-kuma:2` service container and the integration targets run on every push. A local `docker compose` dev instance (`tests/dev/`) mirrors it.
-- The collection gains a `uptime_kuma_setup` module (first-run admin creation) because the new client exposes the `setup` event and rebuild-as-routine in the homelab needs unattended bootstrap.
+- The collection gains a `uptime_kuma_setup` module (first-run admin creation) because the new client exposes the `setup` event and unattended rebuilds need it.
 - Kuma 2.x protocol changes are now this repo's problem to track, with the CI container as the tripwire.
 - Version pin policy: `galaxy.yml` major bumps track Kuma major bumps.

@@ -308,7 +308,7 @@ EXAMPLES = r"""
     timeout: 16
     max_retries: 2
     notification_names:
-      - ntfy (homelab alerts)
+      - ntfy alerts
     state: present
 
 - name: Delete a monitor
