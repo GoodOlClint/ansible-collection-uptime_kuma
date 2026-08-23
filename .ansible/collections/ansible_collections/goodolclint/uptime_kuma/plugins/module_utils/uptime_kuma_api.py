@@ -183,9 +183,9 @@ class UptimeKumaClient:
             try:
                 reply = self._sio.call(event, data, timeout=(3 if retry else self.timeout))
                 break
-            except socketio.exceptions.TimeoutError:
+            except socketio.exceptions.TimeoutError as exc:
                 if attempt == attempts - 1:
-                    raise UptimeKumaError(f"Timed out waiting for '{event}' reply")
+                    raise UptimeKumaError(f"Timed out waiting for '{event}' reply") from exc
         if isinstance(reply, dict) and "ok" in reply:
             if not reply["ok"]:
                 raise UptimeKumaError(reply.get("msg") or f"'{event}' failed")

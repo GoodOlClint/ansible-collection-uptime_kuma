@@ -18,7 +18,7 @@
    "name": ".pylintrc",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "2e5cbb67ca9ce30639cb877045aa2c98648140031101349a65c946c1b529b30f",
+   "chksum_sha256": "ec171a7b74b85c215b37893f07ec2b2490a7e1b4fdae4909b746e84956f33c5b",
    "format": 1
   },
   {
@@ -109,7 +109,7 @@
    "name": "plugins/module_utils/uptime_kuma_api.py",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "806da3098e5657583ea5e15a58b16a6bbdd6aad646fd45ba1f023ee430ee3f5c",
+   "chksum_sha256": "e76cf0b1157af845197df036320295942ffe2d16ec546f1ba2eeb0b716c20570",
    "format": 1
   },
   {
@@ -624,6 +624,13 @@
    "format": 1
   },
   {
+   "name": ".ansible-lint",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "2fe9b93eaf266f7c1ba72c910937faa397bb4e4e3a1fbe691eee17bc1ff3cb25",
+   "format": 1
+  },
+  {
    "name": ".gitignore",
    "ftype": "file",
    "chksum_type": "sha256",
@@ -704,14 +711,14 @@
    "name": ".github/workflows/release.yml",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "9f67192aacb6bc9932e7154d739b61d4195806f6b378a62273f6b61895866e40",
+   "chksum_sha256": "ebdbe0adfbb510740958a10f20e4ce73c4fe015c3a1c2c3dda39d617e9c886b2",
    "format": 1
   },
   {
    "name": ".github/workflows/ci.yml",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "0d4972d558ea02085446eb313d6cdf2b42ad10ddba48e16c364a2a525b24ceb7",
+   "chksum_sha256": "5248cb01693e7409d7086302300ce6fc773a21eabc402c558215f83cb4a0360a",
    "format": 1
   },
   {
