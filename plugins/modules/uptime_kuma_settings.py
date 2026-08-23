@@ -106,7 +106,7 @@ options:
     description:
       - Timeout in seconds for API requests.
     type: int
-    default: 10
+    default: 30
 author:
   - Clint Branham (@goodolclint)
 """
@@ -162,6 +162,7 @@ settings:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kuma_api import (
     UptimeKumaClient,
+    UptimeKumaError,
     compute_diff,
     needs_update,
     normalize_result,
@@ -177,6 +178,8 @@ def run_module(module):
     client = UptimeKumaClient(module)
     try:
         _run(module, client)
+    except UptimeKumaError as exc:
+        module.fail_json(msg=f"Uptime Kuma API error: {exc}")
     finally:
         client.disconnect()
 

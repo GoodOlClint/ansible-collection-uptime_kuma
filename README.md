@@ -6,19 +6,22 @@ Ansible collection for managing Uptime Kuma monitors via its API.
 
 - ansible-core >= 2.14
 - Python >= 3.9
-- `uptime-kuma-api >= 1.2.0` (pip install required on the control node)
+- `python-socketio[client] >= 5.0` (pip install required on the control node)
+- Uptime Kuma **2.x** (tested against `louislam/uptime-kuma:2`; 1.x is not supported)
 
 ### Why a pip dependency?
 
-Uptime Kuma does not expose a REST API — the only programmatic interface is
-Socket.IO 4.x over WebSocket. Implementing a Socket.IO client from scratch using
-only the Python standard library would be disproportionately complex. This
-collection uses the community `uptime-kuma-api` wrapper as a documented exception
-to the stdlib-only rule. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full
-architecture decision record.
+Uptime Kuma does not expose a REST API — the only programmatic interface is Socket.IO 4.x over WebSocket. Implementing Engine.IO and WebSocket framing from the Python standard library would be disproportionately complex, so this collection talks to Uptime Kuma through the maintained `python-socketio` protocol library. The Uptime Kuma event protocol itself lives in this repo (`plugins/module_utils/uptime_kuma_api.py`) and is pinned by integration tests against a real 2.x container. See [ADR 0001](docs/decisions/0001-in-repo-python-socketio-client-replaces-the-uptime-kuma-api-wrapper-uptime-kuma-2-x-only.md).
 
 ```bash
-pip install 'uptime-kuma-api>=1.2.0'
+pip install 'python-socketio[client]>=5.0'
+```
+
+### Local development instance
+
+```bash
+tests/dev/up.sh          # starts louislam/uptime-kuma:2 on :3001 and creates admin / Ansible-Dev-Pass-1
+tests/dev/up.sh down     # tears it down
 ```
 
 ## Installation

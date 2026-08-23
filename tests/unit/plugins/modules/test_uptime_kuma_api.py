@@ -186,4 +186,10 @@ def test_argument_spec_password_no_log():
 def test_argument_spec_defaults():
     spec = uptime_kuma_argument_spec()
     assert spec["validate_certs"]["default"] is True
-    assert spec["api_timeout"]["default"] == 10
+    assert spec["api_timeout"]["default"] == 30
+
+
+def test_needs_update_notification_id_list_dict_vs_list():
+    current = {"notificationIDList": {"1": True, "3": True}}
+    assert needs_update(current, {"notificationIDList": [3, 1]}) is False
+    assert needs_update(current, {"notificationIDList": [1]}) is True
