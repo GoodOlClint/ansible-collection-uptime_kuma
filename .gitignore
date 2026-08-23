@@ -19,3 +19,11 @@ DECISIONS.md
 venv/
 .DS_Store
 tests/integration/integration_config.yml
+
+# ansible-lint / ansible-galaxy install into the repo
+.ansible/
+.ansible-lint-cache/
+
+# Local tooling
+.chunkhound-index
+mempalace.yaml

@@ -14,3 +14,20 @@ homepage: https://github.com/goodolclint/ansible-collection-uptime_kuma
 repository: https://github.com/goodolclint/ansible-collection-uptime_kuma
 issues: https://github.com/goodolclint/ansible-collection-uptime_kuma/issues
 dependencies: {}
+build_ignore:
+  - .ansible
+  - .DS_Store
+  - .ansible-lint
+  - .chunkhound-index
+  - .flake8
+  - .github
+  - .gitignore
+  - .pylintrc
+  - .pytest_cache
+  - "*.tar.gz"
+  - CLAUDE.md
+  - docs
+  - mempalace.yaml
+  - tests/dev
+  - tests/integration/integration_config.yml
+  - "**/__pycache__"
