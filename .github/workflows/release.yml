@@ -9,16 +9,27 @@ jobs:
   release:
     name: Publish to Ansible Galaxy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install ansible-core
         run: pip install ansible-core
+
+      - name: Verify tag matches galaxy.yml version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(sed -n 's/^version: *//p' galaxy.yml)"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::tag v$tag does not match galaxy.yml version $version"
+            exit 1
+          fi
 
       - name: Build collection
         run: ansible-galaxy collection build --force
@@ -28,3 +39,8 @@ jobs:
           ansible-galaxy collection publish
           goodolclint-uptime_kuma-*.tar.gz
           --api-key "${{ secrets.GALAXY_API_KEY }}"
+
+      - name: Create GitHub release with the tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" goodolclint-uptime_kuma-*.tar.gz --title "$GITHUB_REF_NAME" --notes "See CHANGELOG.rst" --verify-tag
