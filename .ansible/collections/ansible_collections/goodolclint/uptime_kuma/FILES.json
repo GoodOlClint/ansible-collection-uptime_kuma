@@ -1,0 +1,740 @@
+{
+ "files": [
+  {
+   "name": ".",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".flake8",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "0b95d9a09a6ac50ee018d3b2c4dc34bfa2ecbd6fac0313a1317dc419c63746ef",
+   "format": 1
+  },
+  {
+   "name": ".pylintrc",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "ec171a7b74b85c215b37893f07ec2b2490a7e1b4fdae4909b746e84956f33c5b",
+   "format": 1
+  },
+  {
+   "name": ".DS_Store",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "48b45764887e720325a8ce596e0aab0b7a0991947cf0c8b7f1a00e4086a72842",
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/CACHEDIR.TAG",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "37dc88ef9a0abeddbe81053a6dd8fdfb13afb613045ea1eb4a5c815a74a3bde4",
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/README.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad",
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/.gitignore",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "3ed731b65d06150c138e2dadb0be0697550888a6b47eb8c45ecc9adba8b8e9bd",
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/v",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/v/cache",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/v/cache/nodeids",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "589464434cf27fe1eaed8e7d76854b7b49ca1370fc63274a860483ac1bba9f11",
+   "format": 1
+  },
+  {
+   "name": ".pytest_cache/v/cache/lastfailed",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+   "format": 1
+  },
+  {
+   "name": "plugins",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "plugins/module_utils",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "plugins/module_utils/__init__.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "format": 1
+  },
+  {
+   "name": "plugins/module_utils/uptime_kuma_api.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "e76cf0b1157af845197df036320295942ffe2d16ec546f1ba2eeb0b716c20570",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_status_page.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "82383dfff91365f2554830c62b88e084b63721a462e159cf36a997a07e42c0ba",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_maintenance.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "df014f06ea269038c83adbeb24f5b75a350a6112dc77f32da24a695656d23684",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_api_key.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "c7824edb687cf2dbee2b9ca6d0b462d214502befd9d996a0d1c248bda76312ac",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_setup.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "7b192e7a6a6f50ad1e0e8eb28351cb19dc156e718a965c71926549e9ef58b806",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_settings.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "641df2973a46e2baaab84f5789c4dbd1016b528ee14442821a5256a4365a1bf3",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_login.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "f80d7a6ee328865698f6c5671d1680896ec202af13153509cfca6f00ac42723b",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_monitor.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "78634c37c9b1cbcc2ace8f63b359890cb541d2142423efc6dae80470098dc4be",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_monitor_tag.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "8b390592cd43ecf71ce982ece853397995f16b8779ecf938472d9ed0efd0feee",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_tag.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "b9de0e1e0be5e2fa370679ba974c595ad9188a2028f0c0e629bd3eb96923a391",
+   "format": 1
+  },
+  {
+   "name": "plugins/modules/uptime_kuma_notification.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "44686b74b86ab6620de45b0d31214f9dc93286d6091091691c458b2b4abc5a23",
+   "format": 1
+  },
+  {
+   "name": ".chunkhound-index",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "ecffb38bf418b29d7df8f8b7a8e80d0e407b7400b78968478ff31b10e8fdc194",
+   "format": 1
+  },
+  {
+   "name": "tests",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/unit",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/unit/conftest.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "dd73187b6295481bca30a96aac66174dcc6524dde021882890f68b0e255c345c",
+   "format": 1
+  },
+  {
+   "name": "tests/unit/plugins",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/unit/plugins/modules",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/unit/plugins/modules/test_uptime_kuma_api.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "db54537ffc908b4d3329568cfb08821147c678c9be4bfc1464f672515046cf35",
+   "format": 1
+  },
+  {
+   "name": "tests/unit/plugins/modules/test_uptime_kuma_tag.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "b726ad0176392db5bde5f62a07af771738166b85fc3b38eb1f739969e0626387",
+   "format": 1
+  },
+  {
+   "name": "tests/unit/plugins/modules/test_uptime_kuma_monitor.py",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "0918f3ccf7c4da76872317d3f9949fe098a2b101b82990d9bf4c268fa2abcaa7",
+   "format": 1
+  },
+  {
+   "name": "tests/integration",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_monitor",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_monitor/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_monitor/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "b687d550157519712558445aeb9006aab528f58025556587609d13677da5e304",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_setup",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_setup/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_setup/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "5274721fbb3a7b7f3f630b0df5fe3115644074ebd0b5f200f3356a5337c561ee",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_monitor_tag",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_monitor_tag/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_monitor_tag/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "b3246cd72cd8ce34e174367e2d14a4bd2577c3d10b3d0bf4af3199b6a20b6553",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_api_key",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_api_key/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_api_key/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "399023c7c04cc29d9c4227efd799f17f3f6f94e38fb29d705797be5128cfc069",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_maintenance",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_maintenance/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_maintenance/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "9a2963ac8c720bba270fdce346924b3913b4f567f98dc1a6d35720ebecb62402",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_notification",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_notification/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_notification/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "9cd90f36d9fc3293ab8e8e97bf7197c6fc321b6dc8fd1636eaba9f83978af40e",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_settings",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_settings/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_settings/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "64b14b381afc9ad630b232b526d08316a218c12636aee711d2f82e36b8126ff2",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_tag",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_tag/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_tag/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "99667bb0f3e35ffa299836cbd55b676881864f99cd3862823535a7331494d525",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_status_page",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_status_page/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/integration/targets/uptime_kuma_status_page/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "65439ab978d6638c114a7d798aa03d33cd7d2d4744f773b3790b3515906ae4ef",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/run.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "a0065b2c156a3bfb80ba11d53abeef39ff04948b1b92415ab90301166a0eb86a",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/integration_config.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "fc0f7a9979467241ef6a88819de202b56e432b398d31112b111af4169e134922",
+   "format": 1
+  },
+  {
+   "name": "tests/integration/integration_config.yml.template",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "fc0f7a9979467241ef6a88819de202b56e432b398d31112b111af4169e134922",
+   "format": 1
+  },
+  {
+   "name": "tests/dev",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "tests/dev/docker-compose.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "3f1ee6b165b78ed2ccf2a125dc8eaf313ae8ccbb84e9ef1503d79b4bc504b522",
+   "format": 1
+  },
+  {
+   "name": "tests/dev/up.sh",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "9cde668676a744bbe6ed5807c953a32e4555489600a0b1b0af92f8e869f33413",
+   "format": 1
+  },
+  {
+   "name": "meta",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "meta/runtime.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "6698ae10ace1bbeba03d0d3df5feecfacb40c830b67544a79a31ab889d16427f",
+   "format": 1
+  },
+  {
+   "name": "roles",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma/tasks/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "80fc4a90cac32faeda5a9bf04a03af1dcd6506b3f9ad4f5384d099b609e6613d",
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma/meta",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma/meta/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "91a1df3914be4af93b0b8d1e14625515b1de799a8a05c9c02160b62d9cfe0463",
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma/defaults",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/uptime_kuma/defaults/main.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "f27cc2610c1fdccb0bee812936d95b67695eed3597a6abd6c99419d5b310c96c",
+   "format": 1
+  },
+  {
+   "name": "docs",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "docs/homelab-gap-report.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "69a71170be714eebf2199edf57186126e01e3be0844febf6742b2bedcef718e3",
+   "format": 1
+  },
+  {
+   "name": "docs/decisions",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "docs/decisions/0001-in-repo-python-socketio-client-replaces-the-uptime-kuma-api-wrapper-uptime-kuma-2-x-only.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "96cb6ff2ca41108b5d444933b946f54558a8ebfbba9c478f12e84ff5783394df",
+   "format": 1
+  },
+  {
+   "name": "changelogs",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "changelogs/config.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "771d7154875eed9bab916f35827ee767f55fe7eed1d7b8a034b001472c6aaf5a",
+   "format": 1
+  },
+  {
+   "name": "README.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "2ba5b9d3543080e7025e76731cc1c6b8e2c7b8953c926cdbb6fa238c5ea55dc2",
+   "format": 1
+  },
+  {
+   "name": "mempalace.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "db3e190cb4958601b5f4d77e074d6d7740a0ddf61c9b465f8e8ac312bcaaafda",
+   "format": 1
+  },
+  {
+   "name": ".ansible-lint",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "2fe9b93eaf266f7c1ba72c910937faa397bb4e4e3a1fbe691eee17bc1ff3cb25",
+   "format": 1
+  },
+  {
+   "name": ".gitignore",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "bd5e269c010bd2cea615b3458fe6570b580cb5edc84f566cb36554b22a6cd0c2",
+   "format": 1
+  },
+  {
+   "name": "CONTRIBUTING.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "2401b3f7be53442246c81c70b524f85ed77254a0e10107474ed85c18a4518d55",
+   "format": 1
+  },
+  {
+   "name": ".ansible",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".ansible/.lock",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "format": 1
+  },
+  {
+   "name": ".ansible/roles",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".ansible/modules",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".ansible/collections",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".ansible/collections/ansible_collections",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".ansible/collections/ansible_collections/goodolclint",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".github",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".github/workflows",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": ".github/workflows/release.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "ebdbe0adfbb510740958a10f20e4ce73c4fe015c3a1c2c3dda39d617e9c886b2",
+   "format": 1
+  },
+  {
+   "name": ".github/workflows/ci.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "5248cb01693e7409d7086302300ce6fc773a21eabc402c558215f83cb4a0360a",
+   "format": 1
+  },
+  {
+   "name": "CHANGELOG.rst",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "b80b9794d9a127ee3caad25487278fd5897a2c2cc4306c6fdb0a887ba500a455",
+   "format": 1
+  },
+  {
+   "name": "CLAUDE.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "f1ec34a1948f9b40c083e51665537677d1b925899fe133e8b1a871bb7afce3f8",
+   "format": 1
+  }
+ ],
+ "format": 1
+}
