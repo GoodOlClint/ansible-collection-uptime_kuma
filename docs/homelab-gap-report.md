@@ -101,7 +101,7 @@ Exit: unit tests for the new fields; the smoke test from P0 extended to the Valh
 
 Open decisions for the operator: (a) whether P0's fallback is the fork or an in-repo `python-socketio` client; (b) whether the first P3 run is allowed against the live instance (it is read-only in check mode, but `apply_existing` on the notification will touch every monitor's linkage if the names don't already match).
 
-## Change plan (approved scope 2026-08-23: 2.x only, all 8 modules)
+## Change plan (approved scope 2026-08-23: 2.x only, all 8 modules) — C0–C7 landed 2026-08-23 on `claude/build-ansible-collection-r4cFP`; tag `v0.2.0` pending operator
 
 Decision record: [ADR 0001](decisions/0001-in-repo-python-socketio-client-replaces-the-uptime-kuma-api-wrapper-uptime-kuma-2-x-only.md). This replaces P0 "prove or replace" above with "replace".
 
