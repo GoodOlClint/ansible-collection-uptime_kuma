@@ -4,8 +4,7 @@
     - name: Create a status page
       goodolclint.uptime_kuma.uptime_kuma_status_page:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         slug: integration-test-page
         title: Integration Test Status
         description: Test status page
@@ -21,8 +20,7 @@
     - name: Create same status page again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_status_page:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         slug: integration-test-page
         title: Integration Test Status
         published: true
@@ -37,8 +35,7 @@
     - name: Delete status page
       goodolclint.uptime_kuma.uptime_kuma_status_page:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         slug: integration-test-page
         state: absent
       register: delete_result
@@ -51,8 +48,7 @@
     - name: Delete status page again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_status_page:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         slug: integration-test-page
         state: absent
       register: delete_idem

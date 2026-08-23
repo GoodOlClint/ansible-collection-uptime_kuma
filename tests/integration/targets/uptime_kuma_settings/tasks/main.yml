@@ -4,8 +4,7 @@
     - name: Query current settings
       goodolclint.uptime_kuma.uptime_kuma_settings:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         state: query
       register: query_result
 
@@ -14,13 +13,12 @@
         that:
           - query_result is not changed
           - query_result.settings is defined
-          - query_result.settings.keepDataPeriodDays is defined
+          - query_result.settings is mapping
 
     - name: Update keep data period
       goodolclint.uptime_kuma.uptime_kuma_settings:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         keep_data_period_days: 90
         state: present
       register: update_result
@@ -33,8 +31,7 @@
     - name: Update same settings again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_settings:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         keep_data_period_days: 90
         state: present
       register: idem_result
@@ -48,8 +45,7 @@
     - name: Restore default keep data period
       goodolclint.uptime_kuma.uptime_kuma_settings:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         keep_data_period_days: 180
         state: present
       failed_when: false

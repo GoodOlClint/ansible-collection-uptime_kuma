@@ -194,9 +194,10 @@ def _build_maintenance_kwargs(module):
         "active": params["active"],
         "description": params["description"],
         "intervalDay": params["interval_day"],
-        "cron": params["cron"],
-        "durationMinutes": params["duration_minutes"],
     }
+    if params["strategy"] == "cron":
+        kwargs["cron"] = params["cron"]
+        kwargs["durationMinutes"] = params["duration_minutes"]
 
     if params.get("date_range") is not None:
         kwargs["dateRange"] = params["date_range"]

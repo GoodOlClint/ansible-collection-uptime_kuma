@@ -4,8 +4,7 @@
     - name: Create prerequisite tag
       goodolclint.uptime_kuma.uptime_kuma_tag:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor-tag
         color: "#ff0000"
         state: present
@@ -13,8 +12,7 @@
     - name: Create prerequisite monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor-for-tag
         monitor_type: http
         url: https://example.com
@@ -23,8 +21,7 @@
     - name: Assign tag to monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         tag_name: integration-test-monitor-tag
         monitor_name: integration-test-monitor-for-tag
         value: test-value
@@ -39,8 +36,7 @@
     - name: Assign same tag again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         tag_name: integration-test-monitor-tag
         monitor_name: integration-test-monitor-for-tag
         value: test-value
@@ -55,8 +51,7 @@
     - name: Remove tag from monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         tag_name: integration-test-monitor-tag
         monitor_name: integration-test-monitor-for-tag
         value: test-value
@@ -72,8 +67,7 @@
     - name: Cleanup monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor-for-tag
         state: absent
       failed_when: false
@@ -81,8 +75,7 @@
     - name: Cleanup tag
       goodolclint.uptime_kuma.uptime_kuma_tag:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor-tag
         state: absent
       failed_when: false

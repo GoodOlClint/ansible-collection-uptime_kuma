@@ -5,8 +5,7 @@
     - name: Create an HTTP monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor
         monitor_type: http
         url: https://example.com
@@ -24,8 +23,7 @@
     - name: Create same monitor again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor
         monitor_type: http
         url: https://example.com
@@ -42,8 +40,7 @@
     - name: Update monitor interval
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor
         monitor_type: http
         url: https://example.com
@@ -60,8 +57,7 @@
     - name: Delete monitor in check mode
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor
         state: absent
       check_mode: true
@@ -76,8 +72,7 @@
     - name: Delete monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor
         state: absent
       register: delete_result
@@ -90,8 +85,7 @@
     - name: Delete monitor again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_monitor:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-monitor
         state: absent
       register: delete_idem

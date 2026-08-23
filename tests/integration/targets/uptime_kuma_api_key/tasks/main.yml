@@ -4,8 +4,7 @@
     - name: Create an API key
       goodolclint.uptime_kuma.uptime_kuma_api_key:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         active: true
         state: present
@@ -21,8 +20,7 @@
     - name: Create same API key again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_api_key:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         active: true
         state: present
@@ -36,8 +34,7 @@
     - name: Disable API key
       goodolclint.uptime_kuma.uptime_kuma_api_key:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         active: false
         state: present
@@ -51,8 +48,7 @@
     - name: Delete API key
       goodolclint.uptime_kuma.uptime_kuma_api_key:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         state: absent
       register: delete_result
@@ -65,8 +61,7 @@
     - name: Delete API key again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_api_key:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         state: absent
       register: delete_idem

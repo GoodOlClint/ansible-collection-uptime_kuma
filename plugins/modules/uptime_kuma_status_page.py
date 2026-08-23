@@ -180,10 +180,7 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
 
 def _get_existing_by_slug(client, slug):
     """Find a status page by slug, return None if not found."""
-    for page in client.get_status_pages():
-        if page.get("slug") == slug:
-            return page
-    return None
+    return client.get_status_page_config(slug)
 
 
 def run_module(module):

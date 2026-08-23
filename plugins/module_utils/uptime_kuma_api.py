@@ -62,6 +62,21 @@ MONITOR_DEFAULTS = {
     "conditions": [],
 }
 
+# jsonToBean indexes these lists unconditionally, so they must always be present.
+MAINTENANCE_DEFAULTS = {
+    "active": True,
+    "description": "",
+    "strategy": "manual",
+    "intervalDay": 1,
+    "dateRange": [],
+    "timeRange": [{"hours": 2, "minutes": 0}, {"hours": 3, "minutes": 0}],
+    "weekdays": [],
+    "daysOfMonth": [],
+    "cron": "30 3 * * *",
+    "durationMinutes": 60,
+    "timezoneOption": None,
+}
+
 # Read-only keys in getMonitor's reply that editMonitor must not receive back.
 _MONITOR_READONLY = {"tags", "childrenIDs", "path", "pathName", "maintenance",
                      "screenshot", "dns_last_result", "includeSensitiveData"}
@@ -127,17 +142,22 @@ class UptimeKumaClient:
         return handler
 
     def _authenticate(self, params):
+        """Log in; ``self.token`` holds the JWT afterwards.
+
+        Password logins are rate-limited server-side (20/min); token logins are
+        not, so callers that run many tasks should log in once and reuse the token.
+        """
+        self.token = params.get("api_token")
         try:
-            if params.get("api_token"):
-                self._call("loginByToken", params["api_token"], retry=True)
-            elif params.get("api_username") and params.get("api_password"):
-                self._call("login", {
-                    "username": params["api_username"],
-                    "password": params["api_password"],
+            if self.token:
+                self._call("loginByToken", self.token, retry=True)
+            else:
+                reply = self._call("login", {
+                    "username": params.get("api_username") or "",
+                    "password": params.get("api_password") or "",
                     "token": "",
                 }, retry=True)
-            else:
-                self._call("login", {"username": "", "password": "", "token": ""}, retry=True)
+                self.token = reply.get("token")
         except UptimeKumaError as exc:
             self.disconnect()
             self.module.fail_json(msg=f"Authentication failed: {exc}")
@@ -327,7 +347,15 @@ class UptimeKumaClient:
     # ── status pages ────────────────────────────────────────────────────
 
     def get_status_pages(self):
+        """Status pages as pushed at login; the server never re-pushes this list."""
         return list((self._list("statusPageList", refresh=False) or {}).values())
+
+    def get_status_page_config(self, slug):
+        """Return the page config for *slug*, or None if no such page."""
+        try:
+            return self._call("getStatusPage", slug)["config"]
+        except UptimeKumaError:
+            return None
 
     def get_status_page(self, slug):
         config = self._call("getStatusPage", slug)["config"]
@@ -343,7 +371,7 @@ class UptimeKumaClient:
         }
 
     def add_status_page(self, slug, title):
-        return self._expect("statusPageList", lambda: self._call("addStatusPage", title, slug))
+        return self._call("addStatusPage", title, slug)
 
     def save_status_page(self, slug, **kwargs):
         page = self.get_status_page(slug)
@@ -362,11 +390,7 @@ class UptimeKumaClient:
         return self._call("saveStatusPage", slug, page, img_data_url, public_group_list)
 
     def delete_status_page(self, slug):
-        result = self._call("deleteStatusPage", slug)
-        self._lists["statusPageList"] = {
-            k: v for k, v in (self._lists.get("statusPageList") or {}).items() if v.get("slug") != slug
-        }
-        return result
+        return self._call("deleteStatusPage", slug)
 
     # ── maintenance ─────────────────────────────────────────────────────
 
@@ -383,7 +407,9 @@ class UptimeKumaClient:
         return None
 
     def add_maintenance(self, **kwargs):
-        return self._call("addMaintenance", kwargs)
+        data = dict(MAINTENANCE_DEFAULTS)
+        data.update(kwargs)
+        return self._call("addMaintenance", data)
 
     def edit_maintenance(self, maintenance_id, **kwargs):
         data = self.get_maintenance(maintenance_id)

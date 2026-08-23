@@ -4,8 +4,7 @@
     - name: Create a manual maintenance window
       goodolclint.uptime_kuma.uptime_kuma_maintenance:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         title: integration-test-maintenance
         strategy: manual
         description: Test maintenance window
@@ -20,8 +19,7 @@
     - name: Create same maintenance again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_maintenance:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         title: integration-test-maintenance
         strategy: manual
         description: Test maintenance window
@@ -36,8 +34,7 @@
     - name: Delete maintenance
       goodolclint.uptime_kuma.uptime_kuma_maintenance:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         title: integration-test-maintenance
         state: absent
       register: delete_result
@@ -50,8 +47,7 @@
     - name: Delete maintenance again (idempotency)
       goodolclint.uptime_kuma.uptime_kuma_maintenance:
         api_url: "{{ uptime_kuma_api_url }}"
-        api_username: "{{ uptime_kuma_api_username }}"
-        api_password: "{{ uptime_kuma_api_password }}"
+        api_token: "{{ uptime_kuma_api_token }}"
         title: integration-test-maintenance
         state: absent
       register: delete_idem
