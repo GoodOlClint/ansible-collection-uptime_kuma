@@ -169,11 +169,51 @@ options:
     description:
       - Docker host ID.
     type: int
+  timeout:
+    description:
+      - Per-check timeout in seconds.
+    type: int
+    default: 48
+  resend_interval:
+    description:
+      - Resend the down notification every N checks while still down. V(0) disables.
+    type: int
+    default: 0
+  json_path:
+    description:
+      - JSON path (jsonata) evaluated against the response body for C(json-query) monitors.
+    type: str
+  json_path_operator:
+    description:
+      - Comparison applied between the json_path result and O(expected_value).
+    type: str
+    choices: ["==", "!=", "<", "<=", ">", ">=", "contains", "not_contains", "starts_with", "ends_with"]
+    default: "=="
+  expected_value:
+    description:
+      - Expected value for C(json-query) monitors.
+    type: str
+  invert_keyword:
+    description:
+      - Invert the keyword match for C(keyword) and C(grpc-keyword) monitors.
+    type: bool
+    default: false
+  parent:
+    description:
+      - Name of the C(group) monitor this monitor belongs to.
+    type: str
   notification_ids:
     description:
       - List of notification provider IDs to associate with this monitor.
+      - Mutually exclusive with O(notification_names).
     type: list
     elements: int
+  notification_names:
+    description:
+      - List of notification provider names to associate with this monitor.
+      - Resolved to IDs at run time; fails if a name does not exist.
+    type: list
+    elements: str
   proxy_id:
     description:
       - Proxy ID to use for this monitor.
@@ -254,6 +294,23 @@ EXAMPLES = r"""
     dns_resolve_type: A
     state: present
 
+- name: Create a JSON query monitor linked to a notification by name
+  goodolclint.uptime_kuma.uptime_kuma_monitor:
+    api_url: http://localhost:3001
+    api_username: admin
+    api_password: secret123
+    name: Valheim — PlayFab lobby
+    monitor_type: json-query
+    url: http://docker.example.internal:8080/status.json
+    json_path: platform
+    json_path_operator: "=="
+    expected_value: playfab
+    timeout: 16
+    max_retries: 2
+    notification_names:
+      - ntfy (homelab alerts)
+    state: present
+
 - name: Delete a monitor
   goodolclint.uptime_kuma.uptime_kuma_monitor:
     api_url: http://localhost:3001
@@ -304,6 +361,9 @@ def build_monitor_params(module):
         "retryInterval": params["retry_interval"],
         "maxretries": params["max_retries"],
         "upsideDown": params["upside_down"],
+        "timeout": params["timeout"],
+        "resendInterval": params["resend_interval"],
+        "invertKeyword": params["invert_keyword"],
     }
 
     # Optional string/int params with direct mapping
@@ -322,6 +382,9 @@ def build_monitor_params(module):
         "docker_host": "docker_host",
         "database_query": "databaseQuery",
         "proxy_id": "proxyId",
+        "json_path": "jsonPath",
+        "json_path_operator": "jsonPathOperator",
+        "expected_value": "expectedValue",
     }
 
     for param_name, api_name in mappings.items():
@@ -352,10 +415,28 @@ def build_monitor_params(module):
     if params.get("database_connection_string") is not None:
         kwargs["databaseConnectionString"] = params["database_connection_string"]
 
-    # Notification IDs
     if params.get("notification_ids") is not None:
         kwargs["notificationIDList"] = params["notification_ids"]
 
+    return kwargs
+
+
+def resolve_references(module, client, kwargs):
+    """Turn notification_names / parent names into IDs, failing on unknown names."""
+    params = module.params
+    if params.get("notification_names") is not None:
+        ids = []
+        for name in params["notification_names"]:
+            notif = client.get_notification_by_name(name)
+            if notif is None:
+                module.fail_json(msg=f"Notification '{name}' does not exist")
+            ids.append(notif["id"])
+        kwargs["notificationIDList"] = ids
+    if params.get("parent") is not None:
+        group = client.get_monitor_by_name(params["parent"])
+        if group is None or group.get("type") != "group":
+            module.fail_json(msg=f"Group monitor '{params['parent']}' does not exist")
+        kwargs["parent"] = group["id"]
     return kwargs
 
 
@@ -398,7 +479,7 @@ def _run(module, client):
         return
 
     # state == present
-    kwargs = build_monitor_params(module)
+    kwargs = resolve_references(module, client, build_monitor_params(module))
 
     if existing is None:
         # Create
@@ -501,7 +582,18 @@ def main():
         database_query=dict(type="str"),
         docker_container=dict(type="str"),
         docker_host=dict(type="int"),
+        timeout=dict(type="int", default=48),
+        resend_interval=dict(type="int", default=0),
+        json_path=dict(type="str"),
+        json_path_operator=dict(
+            type="str", default="==",
+            choices=["==", "!=", "<", "<=", ">", ">=", "contains", "not_contains", "starts_with", "ends_with"],
+        ),
+        expected_value=dict(type="str"),
+        invert_keyword=dict(type="bool", default=False),
+        parent=dict(type="str"),
         notification_ids=dict(type="list", elements="int"),
+        notification_names=dict(type="list", elements="str"),
         proxy_id=dict(type="int"),
         active=dict(type="bool", default=True),
         state=dict(type="str", choices=["present", "absent"], default="present"),
@@ -513,6 +605,7 @@ def main():
         required_if=[
             ("state", "present", ("monitor_type",)),
         ],
+        mutually_exclusive=[("notification_ids", "notification_names")],
     )
 
     run_module(module)

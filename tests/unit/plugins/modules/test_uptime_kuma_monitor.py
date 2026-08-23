@@ -34,6 +34,14 @@ def _make_module_and_client(params_override=None, check_mode=False):
         "retry_interval": 60,
         "max_retries": 1,
         "upside_down": False,
+        "timeout": 48,
+        "resend_interval": 0,
+        "invert_keyword": False,
+        "json_path": None,
+        "json_path_operator": "==",
+        "expected_value": None,
+        "parent": None,
+        "notification_names": None,
         "description": None,
         "keyword": None,
         "ignore_tls": False,
@@ -100,6 +108,8 @@ class TestMonitorPresent:
             "method": "GET",
             "dns_resolve_server": "1.1.1.1",
             "dns_resolve_type": "A",
+            "timeout": 48, "resendInterval": 0, "invertKeyword": False,
+            "jsonPathOperator": "==",
         }
 
         uptime_kuma_monitor._run(module, client)
@@ -197,6 +207,12 @@ class TestBuildMonitorParams:
             "docker_host": None,
             "notification_ids": None,
             "proxy_id": None,
+            "timeout": 48,
+            "resend_interval": 0,
+            "invert_keyword": False,
+            "json_path": None,
+            "json_path_operator": "==",
+            "expected_value": None,
         }
 
         params = build_monitor_params(module)
@@ -204,3 +220,36 @@ class TestBuildMonitorParams:
         assert params["name"] == "test"
         assert params["url"] == "https://example.com"
         assert params["interval"] == 60
+
+
+def test_json_query_params_and_name_resolution():
+    from plugins.modules.uptime_kuma_monitor import build_monitor_params, resolve_references
+
+    module = MagicMock()
+    module.params = {
+        "name": "valheim", "monitor_type": "json-query", "url": "http://h/status.json",
+        "interval": 60, "retry_interval": 60, "max_retries": 2, "upside_down": False,
+        "timeout": 16, "resend_interval": 0, "invert_keyword": False,
+        "json_path": "platform", "json_path_operator": "==", "expected_value": "playfab",
+        "notification_names": ["ntfy"], "parent": "grp",
+    }
+    client = MagicMock()
+    client.get_notification_by_name.return_value = {"id": 7}
+    client.get_monitor_by_name.return_value = {"id": 3, "type": "group"}
+
+    params = resolve_references(module, client, build_monitor_params(module))
+    assert params["jsonPath"] == "platform"
+    assert params["jsonPathOperator"] == "=="
+    assert params["expectedValue"] == "playfab"
+    assert params["timeout"] == 16
+    assert params["notificationIDList"] == [7]
+    assert params["parent"] == 3
+    module.fail_json.assert_not_called()
+
+    client.get_notification_by_name.return_value = None
+    module.fail_json.side_effect = SystemExit
+    try:
+        resolve_references(module, client, build_monitor_params(module))
+    except SystemExit:
+        pass
+    module.fail_json.assert_called_once()
