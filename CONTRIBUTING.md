@@ -11,7 +11,7 @@
 
 ### ADR-001: Socket.IO Client Strategy (Option B — uptime-kuma-api dependency)
 
-**Status:** Accepted
+**Status:** Superseded by [ADR 0001](docs/decisions/0001-in-repo-python-socketio-client-replaces-the-uptime-kuma-api-wrapper-uptime-kuma-2-x-only.md) (2026-08-23)
 **Date:** 2026-03-13
 **Context:** Uptime Kuma does not expose a REST API. The only programmatic interface
 is a Socket.IO 4.x (WebSocket) event-based protocol. Three options were evaluated:
