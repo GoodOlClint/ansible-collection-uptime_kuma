@@ -1,6 +1,6 @@
 # goodolclint.uptime_kuma
 
-Ansible collection for managing Uptime Kuma monitors via its API.
+Ansible collection for managing Uptime Kuma 2.x — monitors, notifications, tags, status pages, maintenance windows, API keys and settings — over its Socket.IO interface.
 
 ## Requirements
 
@@ -44,6 +44,8 @@ ansible-galaxy collection install goodolclint.uptime_kuma
 | `goodolclint.uptime_kuma.uptime_kuma_maintenance` | Manage maintenance windows |
 | `goodolclint.uptime_kuma.uptime_kuma_api_key` | Manage API keys |
 | `goodolclint.uptime_kuma.uptime_kuma_settings` | Query and update instance settings |
+| `goodolclint.uptime_kuma.uptime_kuma_setup` | Create the initial admin account on a fresh instance |
+| `goodolclint.uptime_kuma.uptime_kuma_login` | Obtain a session token; password logins are rate-limited to 20/min, token logins are not |
 
 ### Roles
 
@@ -106,6 +108,18 @@ ansible-galaxy collection install goodolclint.uptime_kuma
         uptime_kuma_api_url: "http://localhost:3001"
         uptime_kuma_api_username: admin
         uptime_kuma_api_password: secret
+        uptime_kuma_bootstrap_admin: true        # create the admin on a fresh instance
+        uptime_kuma_notifications:
+          - name: ntfy
+            notification_type: ntfy
+            is_default: true
+            notification_config:
+              ntfyserverurl: https://ntfy.sh
+              ntfytopic: "{{ ntfy_topic }}"
+        uptime_kuma_monitor_defaults:            # merged under every monitor
+          max_retries: 2
+          timeout: 16
+          notification_names: [ntfy]
         uptime_kuma_tags:
           - name: production
             color: "#28a745"
@@ -113,8 +127,18 @@ ansible-galaxy collection install goodolclint.uptime_kuma
           - name: Example Website
             monitor_type: http
             url: "https://example.com"
-            interval: 60
+            accepted_statuscodes: ["200-299", "300-399"]
+          - name: Lobby
+            monitor_type: json-query
+            url: "http://host:8080/status.json"
+            json_path: platform
+            expected_value: playfab
+        uptime_kuma_monitor_tags:
+          - monitor_name: Example Website
+            tag_name: production
 ```
+
+The role logs in once and reuses the session token; Uptime Kuma limits password logins to 20 per minute, so playbooks that call modules directly should do the same with `uptime_kuma_login`.
 
 ## Contributing
 

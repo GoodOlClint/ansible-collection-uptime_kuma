@@ -2,7 +2,7 @@
  "collection_info": {
   "namespace": "goodolclint",
   "name": "uptime_kuma",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authors": [
    "Clint Branham <goodolclint@gmail.com>"
   ],
@@ -26,7 +26,7 @@
   "name": "FILES.json",
   "ftype": "file",
   "chksum_type": "sha256",
-  "chksum_sha256": "83b4ec7c2820bbf91820455c846a728530170e270aac9332ab33953c5e651a72",
+  "chksum_sha256": "92a558f07e5ca98aa69e7e3c267bec2400a395406ccdf196162775ecee56eded",
   "format": 1
  },
  "format": 1

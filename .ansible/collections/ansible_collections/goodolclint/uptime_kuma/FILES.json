@@ -613,7 +613,7 @@
    "name": "README.md",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "196a1df7ef11b234371fa8b0193094f8e86c1ac0da67a32390e2d7591dd2fbb6",
+   "chksum_sha256": "2ba5b9d3543080e7025e76731cc1c6b8e2c7b8953c926cdbb6fa238c5ea55dc2",
    "format": 1
   },
   {
@@ -725,7 +725,7 @@
    "name": "CHANGELOG.rst",
    "ftype": "file",
    "chksum_type": "sha256",
-   "chksum_sha256": "7e95eeb1a8826fc9097caecd01ef05a3020de7b0c5f7affb3add0abf9fe9bd8b",
+   "chksum_sha256": "b80b9794d9a127ee3caad25487278fd5897a2c2cc4306c6fdb0a887ba500a455",
    "format": 1
   },
   {
