@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.11"
 
       - name: Install ansible-core
         run: pip install ansible-core
@@ -25,9 +25,13 @@ jobs:
       - name: Verify tag matches galaxy.yml version
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          version="$(sed -n 's/^version: *//p' galaxy.yml)"
+          version="$(python -c 'import yaml; print(yaml.safe_load(open("galaxy.yml"))["version"])')"
           if [ "$tag" != "$version" ]; then
             echo "::error::tag v$tag does not match galaxy.yml version $version"
+            exit 1
+          fi
+          if ! grep -q "^v${version}$" CHANGELOG.rst; then
+            echo "::error::CHANGELOG.rst has no v${version} section"
             exit 1
           fi
 
