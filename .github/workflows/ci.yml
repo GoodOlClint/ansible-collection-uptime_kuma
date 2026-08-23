@@ -107,7 +107,7 @@ jobs:
         run: ansible-galaxy collection build --force
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: collection-tarball
           path: goodolclint-uptime_kuma-*.tar.gz
