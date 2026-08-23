@@ -1,0 +1,81 @@
+---
+- name: Test uptime_kuma_monitor_tag module
+  block:
+    - name: Create prerequisite tag
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor-tag
+        color: "#ff0000"
+        state: present
+
+    - name: Create prerequisite monitor
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor-for-tag
+        monitor_type: http
+        url: https://example.com
+        state: present
+
+    - name: Assign tag to monitor
+      goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        tag_name: integration-test-monitor-tag
+        monitor_name: integration-test-monitor-for-tag
+        value: test-value
+        state: present
+      register: assign_result
+
+    - name: Verify tag was assigned
+      ansible.builtin.assert:
+        that:
+          - assign_result is changed
+
+    - name: Assign same tag again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        tag_name: integration-test-monitor-tag
+        monitor_name: integration-test-monitor-for-tag
+        value: test-value
+        state: present
+      register: idem_result
+
+    - name: Verify no change on second run
+      ansible.builtin.assert:
+        that:
+          - idem_result is not changed
+
+    - name: Remove tag from monitor
+      goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        tag_name: integration-test-monitor-tag
+        monitor_name: integration-test-monitor-for-tag
+        value: test-value
+        state: absent
+      register: remove_result
+
+    - name: Verify tag was removed
+      ansible.builtin.assert:
+        that:
+          - remove_result is changed
+
+  always:
+    - name: Cleanup monitor
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor-for-tag
+        state: absent
+      failed_when: false
+
+    - name: Cleanup tag
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor-tag
+        state: absent
+      failed_when: false

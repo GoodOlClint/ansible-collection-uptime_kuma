@@ -1,0 +1,33 @@
+{
+ "collection_info": {
+  "namespace": "goodolclint",
+  "name": "uptime_kuma",
+  "version": "0.1.0",
+  "authors": [
+   "Clint Branham <goodolclint@gmail.com>"
+  ],
+  "readme": "README.md",
+  "tags": [
+   "monitoring",
+   "tools"
+  ],
+  "description": "Ansible collection for managing Uptime Kuma monitors via its API",
+  "license": [
+   "GPL-3.0-or-later"
+  ],
+  "license_file": null,
+  "dependencies": {},
+  "repository": "https://github.com/goodolclint/ansible-collection-uptime_kuma",
+  "documentation": null,
+  "homepage": "https://github.com/goodolclint/ansible-collection-uptime_kuma",
+  "issues": "https://github.com/goodolclint/ansible-collection-uptime_kuma/issues"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "243fa2ac7a5a40f0177e9e20a8ca71236b751d142dfc605042627a57fb4a8231",
+  "format": 1
+ },
+ "format": 1
+}

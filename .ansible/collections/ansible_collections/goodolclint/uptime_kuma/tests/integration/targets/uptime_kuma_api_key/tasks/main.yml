@@ -1,0 +1,72 @@
+---
+- name: Test uptime_kuma_api_key module
+  block:
+    - name: Create an API key
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        active: true
+        state: present
+      register: create_result
+
+    - name: Verify API key was created
+      ansible.builtin.assert:
+        that:
+          - create_result is changed
+          - create_result.key is defined
+          - create_result.key | length > 0
+
+    - name: Create same API key again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        active: true
+        state: present
+      register: idem_result
+
+    - name: Verify no change on second run
+      ansible.builtin.assert:
+        that:
+          - idem_result is not changed
+
+    - name: Disable API key
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        active: false
+        state: present
+      register: disable_result
+
+    - name: Verify API key was disabled
+      ansible.builtin.assert:
+        that:
+          - disable_result is changed
+
+    - name: Delete API key
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        state: absent
+      register: delete_result
+
+    - name: Verify API key was deleted
+      ansible.builtin.assert:
+        that:
+          - delete_result is changed
+
+    - name: Delete API key again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        state: absent
+      register: delete_idem
+
+    - name: Verify no change on second delete
+      ansible.builtin.assert:
+        that:
+          - delete_idem is not changed

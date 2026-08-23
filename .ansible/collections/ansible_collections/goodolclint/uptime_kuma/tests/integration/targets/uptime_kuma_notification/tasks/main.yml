@@ -1,0 +1,63 @@
+---
+- name: Test uptime_kuma_notification module
+  block:
+    - name: Create a webhook notification
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-notification
+        notification_type: webhook
+        notification_config:
+          webhookURL: https://example.com/webhook
+          webhookContentType: "application/json"
+        state: present
+      register: create_result
+
+    - name: Verify notification was created
+      ansible.builtin.assert:
+        that:
+          - create_result is changed
+          - create_result.notification.name == "integration-test-notification"
+
+    - name: Create same notification again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-notification
+        notification_type: webhook
+        notification_config:
+          webhookURL: https://example.com/webhook
+          webhookContentType: "application/json"
+        state: present
+      register: idem_result
+
+    - name: Verify no change on second run
+      ansible.builtin.assert:
+        that:
+          - idem_result is not changed
+
+    - name: Delete notification
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-notification
+        state: absent
+      register: delete_result
+
+    - name: Verify notification was deleted
+      ansible.builtin.assert:
+        that:
+          - delete_result is changed
+
+    - name: Delete notification again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-notification
+        state: absent
+      register: delete_idem
+
+    - name: Verify no change on second delete
+      ansible.builtin.assert:
+        that:
+          - delete_idem is not changed
