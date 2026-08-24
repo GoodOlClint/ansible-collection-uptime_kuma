@@ -253,3 +253,32 @@ def test_json_query_params_and_name_resolution():
     except SystemExit:
         pass
     module.fail_json.assert_called_once()
+
+
+def test_unset_optional_params_are_not_sent_or_compared():
+    """dns_resolve_* and json_path_operator have no module default: an http monitor
+    whose live row carries null for them must not report a change."""
+    from plugins.modules import uptime_kuma_monitor
+    from plugins.modules.uptime_kuma_monitor import build_monitor_params
+
+    module, client, result = _make_module_and_client()
+    module.params.update({"dns_resolve_server": None, "dns_resolve_type": None, "json_path_operator": None})
+    params = build_monitor_params(module)
+    assert "dns_resolve_server" not in params
+    assert "dns_resolve_type" not in params
+    assert "jsonPathOperator" not in params
+    client.get_monitor_by_name.return_value = {
+        "id": 1, "name": "test-monitor", "type": "http",
+        "url": "https://example.com", "interval": 60,
+        "retryInterval": 60, "maxretries": 1,
+        "upsideDown": False, "active": True,
+        "ignoreTls": False, "maxredirects": 10,
+        "accepted_statuscodes": ["200-299"],
+        "method": "GET",
+        "dns_resolve_server": None,
+        "dns_resolve_type": None,
+        "timeout": 48, "resendInterval": 0, "invertKeyword": False,
+        "jsonPathOperator": None,
+    }
+    uptime_kuma_monitor._run(module, client)
+    assert result.get("changed") is False
