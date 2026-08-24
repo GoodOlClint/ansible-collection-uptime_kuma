@@ -282,3 +282,22 @@ def test_unset_optional_params_are_not_sent_or_compared():
     }
     uptime_kuma_monitor._run(module, client)
     assert result.get("changed") is False
+
+
+def test_optional_type_params_carry_no_argument_spec_default():
+    from unittest.mock import patch
+    from plugins.modules import uptime_kuma_monitor
+
+    captured = {}
+
+    def fake_module(**kwargs):
+        captured.update(kwargs["argument_spec"])
+        raise SystemExit
+
+    with patch.object(uptime_kuma_monitor, "AnsibleModule", side_effect=fake_module):
+        try:
+            uptime_kuma_monitor.main()
+        except SystemExit:
+            pass
+    for key in ("dns_resolve_server", "dns_resolve_type", "json_path_operator"):
+        assert "default" not in captured[key], key
