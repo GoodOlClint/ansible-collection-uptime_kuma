@@ -219,7 +219,7 @@ def _run(module, client):
         changed = True
 
     if changed:
-        updated = client.get_api_key(existing["id"]) if not module.check_mode else existing
+        updated = client.get_api_key(existing["id"]) if not module.check_mode else dict(existing, active=active)
         module.exit_json(
             changed=True,
             diff=compute_diff(existing, updated),

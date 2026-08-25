@@ -520,8 +520,7 @@ def _run(module, client):
 
     if needs_update(existing, kwargs):
         if module.check_mode:
-            after = dict(existing)
-            after.update(kwargs)
+            after = dict(existing, **kwargs, active=active)
             module.exit_json(
                 changed=True,
                 diff=_diff(existing, after),
@@ -543,7 +542,7 @@ def _run(module, client):
         changed = True
 
     if changed:
-        updated = client.get_monitor(monitor_id) if not module.check_mode else existing
+        updated = client.get_monitor(monitor_id) if not module.check_mode else dict(existing, active=active)
         diff_data = _diff(existing, updated)
         module.exit_json(changed=True, diff=diff_data, monitor=_out(updated))
     else:

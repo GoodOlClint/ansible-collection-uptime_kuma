@@ -233,6 +233,7 @@ def _run(module, client):
     title = module.params["title"]
     if title is None:
         module.fail_json(msg="Parameter 'title' is required when state=present")
+        return
 
     save_kwargs = _build_save_kwargs(module)
     desired_groups = save_kwargs.get("publicGroupList")
