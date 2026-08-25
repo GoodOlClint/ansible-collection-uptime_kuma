@@ -20,7 +20,7 @@
       - check is changed
       - first is changed
       - first.setup_performed is true
-  when: uptime_kuma_fresh_instance | default(false)
+  when: uptime_kuma_fresh_instance | default(false) | bool
 
 - name: Run setup again
   goodolclint.uptime_kuma.uptime_kuma_setup:
