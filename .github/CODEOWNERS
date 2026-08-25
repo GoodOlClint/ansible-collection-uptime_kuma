@@ -17,6 +17,7 @@
 /galaxy.yml                       @GoodOlClint
 /meta/runtime.yml                 @GoodOlClint
 /CHANGELOG.rst                    @GoodOlClint
+/changelogs/changelog.yaml        @GoodOlClint
 
 # --- The rules themselves, and the machinery that enforces them.
 /CLAUDE.md                        @GoodOlClint

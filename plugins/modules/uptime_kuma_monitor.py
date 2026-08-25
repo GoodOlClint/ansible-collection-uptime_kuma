@@ -556,7 +556,7 @@ def main():
         max_retries=dict(type="int", default=1),
         upside_down=dict(type="bool", default=False),
         description=dict(type="str"),
-        keyword=dict(type="str"),
+        keyword=dict(type="str", no_log=False),
         ignore_tls=dict(type="bool", default=False),
         max_redirects=dict(type="int", default=10),
         accepted_statuscodes=dict(type="list", elements="str", default=["200-299"]),

@@ -14,7 +14,7 @@ This repository is going public. Its Claude review workflow was the early form: 
 Automated code review follows the pattern the operator's other public repos use:
 
 - `.github/workflows/claude-code-review.yml` runs `anthropics/claude-code-action` on non-draft, non-fork PRs. Review instructions live in `.github/review-prompt.md` (+ `.github/review-guides/`) and are **materialized from the default branch** with `git show`, never read from the PR checkout. The job **fails closed** if the action did not run (its anti-tamper gate self-skips when the PR's copy of the workflow differs from main) or if no formal `gh pr review` was recorded.
-- `claude-review` is a **required status check** on `main`, together with Lint, the Unit Tests matrix, Integration (Uptime Kuma 2.x) and Build Collection. `main` requires one approving review, conversation resolution, and forbids force pushes and deletion.
+- `claude-review` is a **required status check** on `main`, together with Lint, Sanity (`ansible-test sanity`), the Unit Tests matrix, Integration (Uptime Kuma 2.x) and Build Collection. `main` requires one approving review, conversation resolution, and forbids force pushes and deletion.
 - `.github/CODEOWNERS` names the operator on exactly the paths the review prompt tells the reviewer to defer on (decisions, the protocol layer, release/dependency surface, the rules and the review machinery). No blanket owner: that would make the automated review advisory.
 - `.github/workflows/claude.yml` handles on-demand `@claude` mentions with the same materialized-instructions pattern.
 

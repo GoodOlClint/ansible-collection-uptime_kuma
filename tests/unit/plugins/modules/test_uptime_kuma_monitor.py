@@ -8,10 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import sys
 from unittest.mock import MagicMock
-
-sys.path.insert(0, ".")
 
 
 def _make_module_and_client(params_override=None, check_mode=False):

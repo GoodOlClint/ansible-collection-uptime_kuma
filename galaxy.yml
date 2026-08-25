@@ -24,6 +24,8 @@ build_ignore:
   - .gitignore
   - .pylintrc
   - .pytest_cache
+  - .coverage
+  - tests/output
   - "*.tar.gz"
   - CLAUDE.md
   - docs

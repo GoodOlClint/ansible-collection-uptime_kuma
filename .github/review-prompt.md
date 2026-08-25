@@ -36,7 +36,7 @@ When any of these apply, do NOT submit --approve or --request-changes. Submit `-
 
 - **Architectural changes**: a new module, changes to the client's connection/auth model, supporting another Uptime Kuma major, new ADRs (the code can be reviewed; accepting the *decision* is the operator's).
 - **New dependencies** (license/supply-chain), not minor version bumps of existing ones.
-- **Release/versioning anything**, including `meta/runtime.yml` `requires_ansible`.
+- **Release/versioning anything**, including `meta/runtime.yml` `requires_ansible` and `changelogs/changelog.yaml` (the recorded release history; fragments under `changelogs/fragments/` are fine).
 - **Changes to CLAUDE.md, CONTRIBUTING.md, docs/decisions/, the review workflow or its prompt files (.github/review-prompt.md, .github/review-guides/, .github/claude-prompt.md), CODEOWNERS, or CI gating.**
 
 ### Rule of thumb
