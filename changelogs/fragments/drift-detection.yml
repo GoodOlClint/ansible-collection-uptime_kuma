@@ -45,8 +45,8 @@ breaking_changes:
     expiry).
   - >-
     uptime_kuma_monitor_tag - ``state=absent`` on an assignment stored with a NULL value now fails
-    with an explanation (the server cannot match it) instead of silently doing nothing (the empty value the
-    module sent never matched the NULL row, so no delete was ever issued).
+    with an explanation (the server cannot match it) instead of silently reporting no change (the module's
+    empty value never matched the NULL row, so it never issued a delete).
   - >-
     uptime_kuma_status_page - ``published`` no longer has any effect: Uptime Kuma 2.x does not change it
     after creation, so it is neither sent nor compared (it previously reported ``changed=true`` on every

@@ -79,11 +79,12 @@ options:
     description:
       - Hostname or IP address.
       - Required for port, ping, DNS, NTP, SIP options, STEAM, GameDig, MQTT, Radius, and Tailscale Ping types.
+      - Radius defaults O(port) to 1812 when unset.
     type: str
   port:
     description:
       - Port number.
-      - Required for port, DNS, SIP options, STEAM, GameDig, MQTT, and Radius types.
+      - Required for port, SIP options, STEAM, GameDig, and MQTT types.
     type: int
   interval:
     description:
@@ -127,9 +128,9 @@ options:
   accepted_statuscodes:
     description:
       - List of accepted HTTP status codes.
+      - Defaults to V(200-299) on the server, or V(1000) (the WebSocket close code) for C(websocket-upgrade) monitors.
     type: list
     elements: str
-    default: ["200-299"]
   method:
     description:
       - HTTP method to use.
@@ -475,7 +476,7 @@ _REQUIRED_ON_CREATE = {
     "sqlserver": ("database_connection_string",), "postgres": ("database_connection_string",),
     "mysql": ("database_connection_string",), "mongodb": ("database_connection_string",),
     "redis": ("database_connection_string",), "oracledb": ("database_connection_string",),
-    "steam": ("hostname", "port"), "gamedig": ("hostname", "port"), "radius": ("hostname", "port"),
+    "steam": ("hostname", "port"), "gamedig": ("hostname", "port"), "radius": ("hostname",),
     "ntp": ("hostname",), "sip-options": ("hostname", "port"), "websocket-upgrade": ("url",),
 }
 
@@ -623,7 +624,7 @@ def main():
         keyword=dict(type="str", no_log=False),
         ignore_tls=dict(type="bool", default=False),
         max_redirects=dict(type="int", default=10),
-        accepted_statuscodes=dict(type="list", elements="str", default=["200-299"]),
+        accepted_statuscodes=dict(type="list", elements="str"),
         method=dict(
             type="str", default="GET",
             choices=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],

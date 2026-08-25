@@ -449,7 +449,7 @@ class TestMonitorCreateRequirements:
         ("oracledb", "database_connection_string"), ("redis", "database_connection_string"),
         ("sqlserver", "database_connection_string"), ("postgres", "database_connection_string"),
         ("mysql", "database_connection_string"), ("mongodb", "database_connection_string"),
-        ("steam", "hostname, port"), ("gamedig", "hostname, port"), ("radius", "hostname, port"),
+        ("steam", "hostname, port"), ("gamedig", "hostname, port"), ("radius", "hostname"),
     ])
     def test_every_targeted_type_needs_its_target(self, monitor_type, missing):
         from plugins.modules import uptime_kuma_monitor

@@ -230,6 +230,10 @@ def test_monitor_normalisation_round_trips():
     assert out == {"notificationIDList": [1, 3], "active": True}
     data = uptime_kuma_api.UptimeKumaClient._monitor_in({"notificationIDList": [1, 3], "accepted_statuscodes": []})
     assert data == {"notificationIDList": {"1": True, "3": True}, "accepted_statuscodes": ["200-299"]}
+    ws = uptime_kuma_api.UptimeKumaClient._monitor_in({"type": "websocket-upgrade"})
+    assert ws["accepted_statuscodes"] == ["1000"]
+    kept = uptime_kuma_api.UptimeKumaClient._monitor_in({"type": "websocket-upgrade", "accepted_statuscodes": ["1001"]})
+    assert kept["accepted_statuscodes"] == ["1001"]
 
 
 def test_edit_monitor_strips_readonly_keys():

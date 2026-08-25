@@ -53,7 +53,6 @@ MONITOR_DEFAULTS = {
     "expiryNotification": False,
     "maxredirects": 10,
     "method": "GET",
-    "accepted_statuscodes": ["200-299"],
     "packetSize": 56,
     "dns_resolve_type": "A",
     "dns_resolve_server": "1.1.1.1",
@@ -257,7 +256,7 @@ class UptimeKumaClient:
         if isinstance(ids, list):
             data["notificationIDList"] = {str(i): True for i in ids}
         if not data.get("accepted_statuscodes"):
-            data["accepted_statuscodes"] = ["200-299"]
+            data["accepted_statuscodes"] = ["1000"] if data.get("type") == "websocket-upgrade" else ["200-299"]
         return data
 
     def get_monitors(self):
@@ -379,9 +378,9 @@ class UptimeKumaClient:
                 public = json.loads(resp.read())
             if not isinstance(public, dict):
                 raise ValueError(f"expected a JSON object, got {type(public).__name__}")
+            config.update(public.get("config") or {})
         except Exception as exc:  # noqa: BLE001  (urls.py raises its own hierarchy plus http.client's)
             raise UptimeKumaError(f"Could not read the public status page at {url}: {exc}") from exc
-        config.update(public.get("config") or {})
         return {
             **config,
             "incident": public.get("incident"),
