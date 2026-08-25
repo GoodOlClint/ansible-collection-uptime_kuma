@@ -14,8 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read
-      checks: read
+      actions: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -32,7 +31,7 @@ jobs:
             exit 1
           fi
           for _ in $(seq 1 90); do
-            run_id="$(gh run list --workflow ci.yml --commit "$sha" --event push --branch main --json databaseId --jq '.[0].databaseId // empty')"
+            run_id="$(gh run list --workflow ci.yml --commit "$sha" --event push --branch main --json databaseId --jq '.[0].databaseId // empty')" || true
             [ -n "$run_id" ] && break
             sleep 10
           done
