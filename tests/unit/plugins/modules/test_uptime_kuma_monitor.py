@@ -368,16 +368,22 @@ class TestMonitorDrift:
         uptime_kuma_monitor._run(module, client)
         assert result["changed"] is False
 
-    def test_inactive_create_pauses_before_reading_back(self):
+    def test_inactive_create_sends_active_false_and_never_pauses(self):
         from plugins.modules import uptime_kuma_monitor
         module, client, result = _make_module_and_client({"active": False})
         client.get_monitor_by_name.return_value = None
         client.add_monitor.return_value = {"monitorID": 7}
         client.get_monitor.return_value = dict(self.EXISTING, active=False)
         uptime_kuma_monitor._run(module, client)
-        calls = [c[0] for c in client.mock_calls]
-        assert calls.index("pause_monitor") < calls.index("get_monitor")
+        assert client.add_monitor.call_args.kwargs["active"] is False
+        client.pause_monitor.assert_not_called()
         assert result["monitor"]["active"] is False
+
+        module, client, result = _make_module_and_client({"active": False}, check_mode=True)
+        client.get_monitor_by_name.return_value = None
+        uptime_kuma_monitor._run(module, client)
+        assert result["monitor"]["active"] is False and result["diff"]["after"]["active"] is False
+        client.add_monitor.assert_not_called()
 
 
 class TestMonitorActiveState:

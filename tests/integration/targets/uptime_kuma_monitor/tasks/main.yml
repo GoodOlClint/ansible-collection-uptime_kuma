@@ -225,6 +225,7 @@
           - typed_create.results[1].monitor.accepted_statuscodes == ["1000"]
           - "'databaseConnectionString' not in typed_create.results[2].monitor"
           - typed_create.results[3].monitor.port == 5060
+          - typed_create.results | map(attribute='monitor.active') | select | list | length == 0
 
     # ── CHECK MODE ────────────────────────────────────────────────────
     - name: Delete monitor in check mode
