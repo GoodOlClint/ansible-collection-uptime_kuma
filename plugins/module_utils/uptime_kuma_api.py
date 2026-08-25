@@ -82,9 +82,8 @@ _MONITOR_READONLY = {"tags", "childrenIDs", "path", "pathName", "maintenance",
                      "screenshot", "dns_last_result", "includeSensitiveData"}
 
 
-# Per-attempt ack timeout for the retried (idempotent) requests. Uptime Kuma 2.5
-# answers a password login in ~3.5 s, so anything shorter times out every attempt
-# while the server logs one successful login per try.
+# Per-attempt ack timeout for retried requests; must exceed the server's password
+# login latency (~3.5 s on Uptime Kuma 2.5), see _call.
 _RETRY_TIMEOUT = 10
 
 
@@ -181,7 +180,11 @@ class UptimeKumaClient:
 
         The server registers its handlers only after an awaited ``info`` push,
         so the first requests after connect can be dropped; ``retry`` re-sends
-        idempotent ones (login, needSetup, setup).
+        idempotent ones (login, loginByToken, needSetup, setup). Each attempt
+        waits ``_RETRY_TIMEOUT``, not ``api_timeout``: it must be long enough
+        for a real reply (a password login takes ~3.5 s on 2.5, and a timed-out
+        login still succeeds server-side and consumes the 20/min budget) but
+        short enough that a genuinely dropped request is re-sent promptly.
         """
         data = args[0] if len(args) == 1 else (args or None)
         attempts = 5 if retry else 1
