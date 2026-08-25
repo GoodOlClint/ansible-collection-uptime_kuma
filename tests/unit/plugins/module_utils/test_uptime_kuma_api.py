@@ -8,15 +8,12 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import sys
 from unittest.mock import MagicMock
 
 import pytest
 import socketio
 
-sys.path.insert(0, ".")
-
-from plugins.module_utils import uptime_kuma_api  # noqa: E402
+from plugins.module_utils import uptime_kuma_api
 
 
 def _client(sio):
@@ -37,7 +34,8 @@ def test_retried_call_waits_long_enough_for_a_password_login():
 
     assert reply == {"token": "jwt"}
     assert sio.call.call_count == 2
-    assert all(c.kwargs["timeout"] >= 10 for c in sio.call.call_args_list)
+    assert all(c.kwargs["timeout"] == uptime_kuma_api._RETRY_TIMEOUT for c in sio.call.call_args_list)
+    assert uptime_kuma_api._RETRY_TIMEOUT >= 10
 
 
 def test_retried_call_gives_up_after_five_attempts():
