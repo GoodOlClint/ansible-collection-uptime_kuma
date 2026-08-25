@@ -4,7 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -21,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools
-          pip install flake8 pylint ansible-core ansible-lint 'python-socketio[client]'
+          pip install flake8==7.3.0 pylint==4.0.7 ansible-lint==26.8.0 'ansible-core>=2.16,<2.22' 'python-socketio[client]'
 
       - name: Run flake8
         run: flake8 plugins/ tests/
@@ -49,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools
-          pip install pytest pytest-cov ansible-core 'python-socketio[client]'
+          pip install pytest pytest-cov 'ansible-core>=2.16,<2.22' 'python-socketio[client]'
 
       - name: Run unit tests
         run: pytest tests/unit/ -v --cov=plugins/module_utils --cov-report=term-missing --cov-fail-under=80
@@ -68,7 +75,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install ansible-core
-        run: pip install ansible-core
+        run: pip install 'ansible-core>=2.16,<2.22'
 
       - name: Run ansible-test sanity
         working-directory: ansible_collections/goodolclint/uptime_kuma
@@ -98,7 +105,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install ansible-core 'python-socketio[client]'
+        run: pip install 'ansible-core>=2.16,<2.22' 'python-socketio[client]'
 
       - name: Run integration targets
         working-directory: ansible_collections/goodolclint/uptime_kuma/tests/integration
@@ -121,7 +128,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install ansible-core
-        run: pip install ansible-core
+        run: pip install 'ansible-core>=2.16,<2.22'
 
       - name: Build collection
         run: ansible-galaxy collection build --force
