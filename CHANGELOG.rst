@@ -4,6 +4,19 @@ goodolclint.uptime\_kuma Release Notes
 
 .. contents:: Topics
 
+v0.3.1
+======
+
+Release Summary
+---------------
+
+Adds the ``expiry_notification`` monitor option (Certificate Expiry Notification), also passed through by the ``uptime_kuma`` role.
+
+Minor Changes
+-------------
+
+- uptime_kuma_monitor - new ``expiry_notification`` option (Uptime Kuma's "Certificate Expiry Notification" toggle, sent as ``expiryNotification``); it has no default, so an unset option leaves a value toggled in the UI alone. The ``uptime_kuma`` role passes it through per monitor.
+
 v0.3.0
 ======
 
