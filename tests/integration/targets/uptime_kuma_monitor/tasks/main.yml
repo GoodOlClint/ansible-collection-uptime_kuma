@@ -1,5 +1,11 @@
 ---
 - name: Test uptime_kuma_monitor module
+  vars:
+    integration_typed_monitors:
+      - {name: integration-test-ntp, monitor_type: ntp, hostname: pool.ntp.org}
+      - {name: integration-test-ws, monitor_type: websocket-upgrade, url: "wss://example.com/ws"}
+      - {name: integration-test-oracle, monitor_type: oracledb, database_connection_string: "db.example.com:1521/XEPDB1"}
+      - {name: integration-test-sip, monitor_type: sip-options, hostname: sip.example.com, port: 5060}
   block:
     - name: Create a monitor in check mode
       goodolclint.uptime_kuma.uptime_kuma_monitor:
@@ -160,6 +166,66 @@
           - "'databaseConnectionString' not in db_rotate.monitor"
           - "'databaseConnectionString' not in db_rotate.diff.after"
 
+    # ── OTHER TYPES ───────────────────────────────────────────────────
+    - name: Create one monitor of each newer type
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: "{{ item.name }}"
+        monitor_type: "{{ item.monitor_type }}"
+        url: "{{ item.url | default(omit) }}"
+        hostname: "{{ item.hostname | default(omit) }}"
+        port: "{{ item.port | default(omit) }}"
+        database_connection_string: "{{ item.database_connection_string | default(omit) }}"
+        active: false
+        state: present
+      loop: "{{ integration_typed_monitors }}"
+      loop_control:
+        label: "{{ item.monitor_type }}"
+      register: typed_create
+
+    - name: Create the same typed monitors again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: "{{ item.name }}"
+        monitor_type: "{{ item.monitor_type }}"
+        url: "{{ item.url | default(omit) }}"
+        hostname: "{{ item.hostname | default(omit) }}"
+        port: "{{ item.port | default(omit) }}"
+        database_connection_string: "{{ item.database_connection_string | default(omit) }}"
+        active: false
+        state: present
+      loop: "{{ integration_typed_monitors }}"
+      loop_control:
+        label: "{{ item.monitor_type }}"
+      register: typed_idem
+
+    - name: Rotate the OracleDB connection string
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-oracle
+        monitor_type: oracledb
+        database_connection_string: "db.example.com:1521/OTHERPDB"
+        active: false
+        state: present
+      register: oracle_rotate
+
+    - name: Verify each typed monitor was created once with its payload
+      ansible.builtin.assert:
+        that:
+          - oracle_rotate is changed
+          - typed_create.results[3].monitor.hostname == "sip.example.com"
+          - typed_create.results | map(attribute='changed') | reject | list | length == 0
+          - typed_idem.results | map(attribute='changed') | select | list | length == 0
+          - typed_create.results | map(attribute='monitor.type') | list == integration_typed_monitors | map(attribute='monitor_type') | list
+          - typed_create.results[0].monitor.hostname == "pool.ntp.org"
+          - typed_create.results[1].monitor.url == "wss://example.com/ws"
+          - typed_create.results[1].monitor.accepted_statuscodes == ["1000"]
+          - "'databaseConnectionString' not in typed_create.results[2].monitor"
+          - typed_create.results[3].monitor.port == 5060
+
     # ── CHECK MODE ────────────────────────────────────────────────────
     - name: Delete monitor in check mode
       goodolclint.uptime_kuma.uptime_kuma_monitor:
@@ -209,7 +275,7 @@
         api_token: "{{ uptime_kuma_api_token }}"
         name: "{{ monitor_name }}"
         state: absent
-      loop: [integration-test-monitor, integration-test-db-monitor]
+      loop: "{{ ['integration-test-monitor', 'integration-test-db-monitor'] + integration_typed_monitors | map(attribute='name') | list }}"
       loop_control:
         loop_var: monitor_name
       failed_when: false
