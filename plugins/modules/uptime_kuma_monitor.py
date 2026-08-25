@@ -128,7 +128,7 @@ options:
   accepted_statuscodes:
     description:
       - List of accepted HTTP status codes.
-      - Defaults to V(200-299) on the server, or V(1000) (the WebSocket close code) for C(websocket-upgrade) monitors.
+      - Defaults to V(200-299) when unset, or V(1000) (the WebSocket close code) for C(websocket-upgrade) monitors.
     type: list
     elements: str
   method:
