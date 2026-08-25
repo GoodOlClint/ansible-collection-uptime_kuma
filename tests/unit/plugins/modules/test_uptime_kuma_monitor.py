@@ -385,6 +385,13 @@ class TestMonitorDrift:
         assert result["monitor"]["active"] is False and result["diff"]["after"]["active"] is False
         client.add_monitor.assert_not_called()
 
+        module, client, result = _make_module_and_client({"active": None})
+        client.get_monitor_by_name.return_value = None
+        client.add_monitor.return_value = {"monitorID": 7}
+        client.get_monitor.return_value = dict(self.EXISTING, active=False)
+        uptime_kuma_monitor._run(module, client)
+        assert client.add_monitor.call_args.kwargs["active"] is False
+
 
 class TestMonitorActiveState:
     EXISTING = TestMonitorDrift.EXISTING

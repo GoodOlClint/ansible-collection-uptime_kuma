@@ -41,6 +41,7 @@
       ansible.builtin.assert:
         that:
           - create_result is changed
+          - create_result.monitor.active
           - create_result.monitor.name == "integration-test-monitor"
           - "'basic_auth_pass' not in create_result.monitor"
           - "'tlsKey' not in create_result.monitor"
