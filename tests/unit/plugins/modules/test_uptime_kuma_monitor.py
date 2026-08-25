@@ -503,10 +503,10 @@ class TestExpiryNotification:
     @pytest.mark.parametrize("value", [True, False])
     def test_reaches_the_payload(self, value):
         from plugins.modules.uptime_kuma_monitor import build_monitor_params
-        module, _, _ = _make_module_and_client({"expiry_notification": value})
+        module = _make_module_and_client({"expiry_notification": value})[0]
         assert build_monitor_params(module)["expiryNotification"] is value
 
     def test_absent_when_unset(self):
         from plugins.modules.uptime_kuma_monitor import build_monitor_params
-        module, _, _ = _make_module_and_client()
+        module = _make_module_and_client()[0]
         assert "expiryNotification" not in build_monitor_params(module)
