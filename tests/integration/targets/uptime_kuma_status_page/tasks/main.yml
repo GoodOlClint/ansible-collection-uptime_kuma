@@ -23,6 +23,7 @@
         api_token: "{{ uptime_kuma_api_token }}"
         slug: integration-test-page
         title: Integration Test Status
+        description: Test status page
         published: true
         state: present
       register: idem_result
@@ -31,6 +32,101 @@
       ansible.builtin.assert:
         that:
           - idem_result is not changed
+
+    - name: Change the description
+      goodolclint.uptime_kuma.uptime_kuma_status_page:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        slug: integration-test-page
+        title: Integration Test Status
+        description: Changed description
+        published: true
+        state: present
+      register: drift_result
+
+    - name: Re-run with the changed description
+      goodolclint.uptime_kuma.uptime_kuma_status_page:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        slug: integration-test-page
+        title: Integration Test Status
+        description: Changed description
+        published: true
+        state: present
+      register: drift_idem
+
+    - name: Verify description drift was applied once
+      ansible.builtin.assert:
+        that:
+          - drift_result is changed
+          - drift_idem is not changed
+          - drift_idem.status_page.description == "Changed description"
+
+    - name: Create a monitor to place on the page
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-page-monitor
+        monitor_type: http
+        url: https://example.com
+        state: present
+      register: page_monitor
+
+    - name: Set analytics and a public group
+      goodolclint.uptime_kuma.uptime_kuma_status_page:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        slug: integration-test-page
+        title: Integration Test Status
+        description: Changed description
+        google_analytics_id: G-INTEGRATION
+        public_group_list:
+          - name: Services
+            monitorList:
+              - id: "{{ page_monitor.monitor.id }}"
+        state: present
+      register: groups_result
+
+    - name: Set the same analytics and group again
+      goodolclint.uptime_kuma.uptime_kuma_status_page:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        slug: integration-test-page
+        title: Integration Test Status
+        description: Changed description
+        google_analytics_id: G-INTEGRATION
+        public_group_list:
+          - name: Services
+            monitorList:
+              - id: "{{ page_monitor.monitor.id }}"
+        state: present
+      register: groups_idem
+
+    - name: Rename the group
+      goodolclint.uptime_kuma.uptime_kuma_status_page:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        slug: integration-test-page
+        title: Integration Test Status
+        description: Changed description
+        google_analytics_id: G-INTEGRATION
+        public_group_list:
+          - name: Renamed
+            monitorList:
+              - id: "{{ page_monitor.monitor.id }}"
+        state: present
+      register: groups_drift
+
+    - name: Verify analytics and groups persist, are idempotent and detect drift
+      ansible.builtin.assert:
+        that:
+          - groups_result is changed
+          - groups_result.status_page.analyticsId == "G-INTEGRATION"
+          - groups_result.status_page.publicGroupList | length == 1
+          - groups_result.status_page.publicGroupList[0].monitorList | map(attribute='id') | list == [page_monitor.monitor.id]
+          - groups_idem is not changed
+          - groups_drift is changed
+          - groups_drift.status_page.publicGroupList[0].name == "Renamed"
 
     - name: Delete status page
       goodolclint.uptime_kuma.uptime_kuma_status_page:
@@ -57,3 +153,20 @@
       ansible.builtin.assert:
         that:
           - delete_idem is not changed
+
+  always:
+    - name: Clean up
+      goodolclint.uptime_kuma.uptime_kuma_status_page:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        slug: integration-test-page
+        state: absent
+      failed_when: false
+
+    - name: Clean up the page monitor
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-page-monitor
+        state: absent
+      failed_when: false

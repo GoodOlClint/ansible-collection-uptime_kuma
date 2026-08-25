@@ -1,5 +1,6 @@
 ---
 # Runs every integration target against the instance in integration_config.yml.
+# The suite mutates instance settings (Steam API key, data retention); use a throwaway instance (tests/dev/up.sh).
 # Usage: ansible-playbook tests/integration/run.yml   (collection must be on ANSIBLE_COLLECTIONS_PATH)
 - name: Integration targets
   hosts: localhost
