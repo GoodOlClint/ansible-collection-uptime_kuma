@@ -72,6 +72,7 @@
         monitor_type: http
         url: https://example.com
         interval: 300
+        expiry_notification: true
         state: present
       register: update_result
 
@@ -83,6 +84,7 @@
         monitor_type: http
         url: https://example.com
         interval: 300
+        expiry_notification: true
         state: present
       register: update_idem
 
@@ -91,6 +93,7 @@
         that:
           - update_result is changed
           - update_result.monitor.interval == 300
+          - update_result.monitor.expiryNotification | bool
           - update_idem is not changed
 
     - name: Pause the monitor

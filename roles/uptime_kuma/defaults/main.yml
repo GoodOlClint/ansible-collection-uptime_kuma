@@ -30,6 +30,7 @@ uptime_kuma_monitors: []
 #   url: https://example.com
 #   accepted_statuscodes: ["200-299", "300-399"]
 #   ignore_tls: true
+#   expiry_notification: true
 # - name: Lobby
 #   monitor_type: json-query
 #   url: http://host:8080/status.json

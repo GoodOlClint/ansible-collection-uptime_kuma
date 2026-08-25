@@ -44,6 +44,7 @@ def _make_module_and_client(params_override=None, check_mode=False):
         "description": None,
         "keyword": None,
         "ignore_tls": False,
+        "expiry_notification": None,
         "max_redirects": 10,
         "accepted_statuscodes": ["200-299"],
         "method": "GET",
@@ -496,3 +497,16 @@ class TestMonitorCreateRequirements:
         client.get_monitor_by_name.return_value = existing
         uptime_kuma_monitor._run(module, client)
         assert result["changed"] is True and client.delete_monitor.called
+
+
+class TestExpiryNotification:
+    @pytest.mark.parametrize("value", [True, False])
+    def test_reaches_the_payload(self, value):
+        from plugins.modules.uptime_kuma_monitor import build_monitor_params
+        module, _, _ = _make_module_and_client({"expiry_notification": value})
+        assert build_monitor_params(module)["expiryNotification"] is value
+
+    def test_absent_when_unset(self):
+        from plugins.modules.uptime_kuma_monitor import build_monitor_params
+        module, _, _ = _make_module_and_client()
+        assert "expiryNotification" not in build_monitor_params(module)
