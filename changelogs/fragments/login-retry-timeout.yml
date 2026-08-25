@@ -1,0 +1,2 @@
+bugfixes:
+  - "client - the retried requests (``login``, ``loginByToken``, ``needSetup``, ``setup``) now wait 10 s per attempt instead of 3 s; Uptime Kuma 2.5 answers a password login in about 3.5 s, so every attempt timed out (``Authentication failed: Timed out waiting for 'login' reply``) while the server logged one successful login per retry."

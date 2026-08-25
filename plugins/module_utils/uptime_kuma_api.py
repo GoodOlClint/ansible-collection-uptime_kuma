@@ -82,6 +82,12 @@ _MONITOR_READONLY = {"tags", "childrenIDs", "path", "pathName", "maintenance",
                      "screenshot", "dns_last_result", "includeSensitiveData"}
 
 
+# Per-attempt ack timeout for the retried (idempotent) requests. Uptime Kuma 2.5
+# answers a password login in ~3.5 s, so anything shorter times out every attempt
+# while the server logs one successful login per try.
+_RETRY_TIMEOUT = 10
+
+
 class UptimeKumaError(Exception):
     """Raised when the server answers ``ok: false`` or does not answer."""
 
@@ -181,7 +187,7 @@ class UptimeKumaClient:
         attempts = 5 if retry else 1
         for attempt in range(attempts):
             try:
-                reply = self._sio.call(event, data, timeout=(3 if retry else self.timeout))
+                reply = self._sio.call(event, data, timeout=(_RETRY_TIMEOUT if retry else self.timeout))
                 break
             except socketio.exceptions.TimeoutError as exc:
                 if attempt == attempts - 1:
