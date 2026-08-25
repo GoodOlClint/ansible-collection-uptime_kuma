@@ -1,0 +1,5 @@
+trivial:
+  - >-
+    ci - the release gate re-runs a CI run that the main-branch concurrency group cancelled (stacked merges)
+    instead of failing, keeps polling through a transient ``gh`` error, and drops the unused ``checks: read``
+    scope in favour of the ``actions: write`` that re-running needs.

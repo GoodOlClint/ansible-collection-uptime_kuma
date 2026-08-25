@@ -66,6 +66,6 @@ Releases are cut by the operator only; the review prompt treats a version bump i
 
 1. In a PR titled `chore: release vX.Y.Z`: update `version` in galaxy.yml and run `antsibull-changelog release`, which folds `changelogs/fragments/` into CHANGELOG.rst.
 2. Merge, then tag the merge commit: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-3. The Release workflow checks that the tagged commit is on `main`, waits for that commit's CI run to finish green (it blocks, so tagging right after the merge is fine), verifies the tag matches galaxy.yml and that CHANGELOG.rst has a section for it, builds, publishes to Ansible Galaxy with the `GALAXY_API_KEY` repository secret, and creates a GitHub Release with the tarball.
+3. The Release workflow checks that the tagged commit is on `main`, waits for that commit's CI run to finish green (it blocks, so tagging right after the merge is fine; a run the main-branch concurrency group cancelled during a stacked merge is re-run automatically), verifies the tag matches galaxy.yml and that CHANGELOG.rst has a section for it, builds, publishes to Ansible Galaxy with the `GALAXY_API_KEY` repository secret, and creates a GitHub Release with the tarball.
 
 One-time setup: sign in to https://galaxy.ansible.com with GitHub (this creates the `goodolclint` namespace), generate an API token under Collections → API token, and store it as the `GALAXY_API_KEY` secret on this repository.
