@@ -104,14 +104,17 @@ options:
   api_username:
     description:
       - Username for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_password:
     description:
       - Password for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_token:
     description:
       - Login token for authentication.
+      - Mutually exclusive with O(api_password).
     type: str
   validate_certs:
     description:
