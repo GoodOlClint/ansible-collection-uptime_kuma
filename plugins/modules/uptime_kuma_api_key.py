@@ -13,6 +13,15 @@ DOCUMENTATION = r"""
 module: uptime_kuma_api_key
 short_description: Manage API keys in Uptime Kuma
 version_added: "0.1.0"
+requirements:
+  - python-socketio[client] >= 5.0 on the host the module runs on
+attributes:
+  check_mode:
+    description: Can run in check_mode and return changed status prediction without modifying target.
+    support: full
+  diff_mode:
+    description: Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode.
+    support: full
 description:
   - Create and delete API keys in Uptime Kuma.
   - API keys are identified by O(name) for idempotency.
@@ -242,6 +251,8 @@ def main():
     module = AnsibleModule(
         argument_spec=spec,
         supports_check_mode=True,
+        required_one_of=[("api_password", "api_token")],
+        mutually_exclusive=[("api_token", "api_password")],
     )
 
     run_module(module)

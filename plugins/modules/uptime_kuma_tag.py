@@ -13,6 +13,15 @@ DOCUMENTATION = r"""
 module: uptime_kuma_tag
 short_description: Manage tags in Uptime Kuma
 version_added: "0.1.0"
+requirements:
+  - python-socketio[client] >= 5.0 on the host the module runs on
+attributes:
+  check_mode:
+    description: Can run in check_mode and return changed status prediction without modifying target.
+    support: full
+  diff_mode:
+    description: Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode.
+    support: full
 description:
   - Create, update, and delete tags in Uptime Kuma.
   - Tags can be assigned to monitors to categorise and group them.
@@ -42,17 +51,17 @@ options:
   api_username:
     description:
       - Username for authentication.
-      - Not required if O(api_token) is provided or authentication is disabled.
+      - Not required if O(api_token) is provided.
     type: str
   api_password:
     description:
       - Password for authentication.
-      - Not required if O(api_token) is provided or authentication is disabled.
+      - Not required if O(api_token) is provided.
     type: str
   api_token:
     description:
       - Login token for authentication.
-      - Mutually exclusive with O(api_username)/O(api_password).
+      - Mutually exclusive with O(api_password).
     type: str
   validate_certs:
     description:
@@ -219,6 +228,8 @@ def main():
     module = AnsibleModule(
         argument_spec=spec,
         supports_check_mode=True,
+        required_one_of=[("api_password", "api_token")],
+        mutually_exclusive=[("api_token", "api_password")],
         required_if=[
             ("state", "present", ("color",)),
         ],

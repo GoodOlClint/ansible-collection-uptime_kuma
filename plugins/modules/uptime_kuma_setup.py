@@ -13,6 +13,15 @@ DOCUMENTATION = r"""
 module: uptime_kuma_setup
 short_description: Create the initial admin account on a fresh Uptime Kuma
 version_added: "0.2.0"
+requirements:
+  - python-socketio[client] >= 5.0 on the host the module runs on
+attributes:
+  check_mode:
+    description: Can run in check_mode and return changed status prediction without modifying target.
+    support: full
+  diff_mode:
+    description: Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode.
+    support: none
 description:
   - Performs the first-run setup of an Uptime Kuma instance by creating the admin user.
   - Does nothing when the instance has already been set up.

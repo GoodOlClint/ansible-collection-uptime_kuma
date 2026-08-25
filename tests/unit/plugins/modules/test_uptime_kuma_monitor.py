@@ -427,3 +427,31 @@ class TestMonitorActiveState:
             pass
         assert "Group monitor 'nope'" in module.fail_json.call_args.kwargs["msg"]
         client.add_monitor.assert_not_called()
+
+
+class TestMonitorCreateRequirements:
+    def test_create_without_type_specific_options_fails(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"url": None})
+        module.fail_json = MagicMock(side_effect=SystemExit)
+        client.get_monitor_by_name.return_value = None
+        try:
+            uptime_kuma_monitor._run(module, client)
+        except SystemExit:
+            pass
+        assert "needs url" in module.fail_json.call_args.kwargs["msg"]
+        client.add_monitor.assert_not_called()
+
+    def test_partial_update_and_delete_do_not_need_them(self):
+        from plugins.modules import uptime_kuma_monitor
+        existing = dict(TestMonitorDrift.EXISTING, interval=30)
+        module, client, result = _make_module_and_client({"url": None})
+        client.get_monitor_by_name.return_value = existing
+        client.get_monitor.return_value = dict(existing, interval=60)
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True and client.edit_monitor.called
+
+        module, client, result = _make_module_and_client({"url": None, "state": "absent"})
+        client.get_monitor_by_name.return_value = existing
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True and client.delete_monitor.called

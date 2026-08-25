@@ -13,6 +13,15 @@ DOCUMENTATION = r"""
 module: uptime_kuma_login
 short_description: Obtain a login token from Uptime Kuma
 version_added: "0.2.0"
+requirements:
+  - python-socketio[client] >= 5.0 on the host the module runs on
+attributes:
+  check_mode:
+    description: Can run in check_mode and return changed status prediction without modifying target.
+    support: full
+  diff_mode:
+    description: Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode.
+    support: none
 description:
   - Logs in with username and password and returns the session token.
   - Uptime Kuma rate-limits password logins to 20 per minute but not token logins, so
