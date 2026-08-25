@@ -43,10 +43,21 @@
         state: present
       register: update_result
 
-    - name: Verify tag was updated
+    - name: Update tag colour again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-tag
+        color: "#00ff00"
+        state: present
+      register: update_idem
+
+    - name: Verify the update persisted
       ansible.builtin.assert:
         that:
           - update_result is changed
+          - update_result.tag.color == "#00ff00"
+          - update_idem is not changed
 
     # ── CHECK MODE ────────────────────────────────────────────────────
     - name: Delete tag in check mode
@@ -90,3 +101,12 @@
       ansible.builtin.assert:
         that:
           - delete_idem is not changed
+
+  always:
+    - name: Clean up
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-tag
+        state: absent
+      failed_when: false

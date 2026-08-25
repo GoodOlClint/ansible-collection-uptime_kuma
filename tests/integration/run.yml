@@ -19,6 +19,12 @@
       register: kuma_login
       no_log: true
 
+    - name: Verify the login contract
+      ansible.builtin.assert:
+        that:
+          - kuma_login is not changed
+          - kuma_login.token | length > 0
+
     - name: Expose the token to the targets
       ansible.builtin.set_fact:
         uptime_kuma_api_token: "{{ kuma_login.token }}"
@@ -35,3 +41,4 @@
         - uptime_kuma_status_page
         - uptime_kuma_api_key
         - uptime_kuma_settings
+        - uptime_kuma_role

@@ -1,4 +1,12 @@
 ---
+- name: Predict first-time setup in check mode
+  goodolclint.uptime_kuma.uptime_kuma_setup:
+    api_url: "{{ uptime_kuma_api_url }}"
+    username: "{{ uptime_kuma_api_username }}"
+    password: "{{ uptime_kuma_api_password }}"
+  check_mode: true
+  register: check
+
 - name: Run first-time setup (no-op if already done)
   goodolclint.uptime_kuma.uptime_kuma_setup:
     api_url: "{{ uptime_kuma_api_url }}"
@@ -18,6 +26,9 @@
     that:
       - second is not changed
       - second.setup_performed is false
+      - check.setup_performed is false
+      - check.changed == first.changed
+      - first.setup_performed == first.changed
 
 - name: Verify login works with the created account
   goodolclint.uptime_kuma.uptime_kuma_tag:
