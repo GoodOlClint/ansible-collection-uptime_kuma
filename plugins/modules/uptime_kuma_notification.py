@@ -46,7 +46,10 @@ options:
       - Keys and values depend on the chosen O(notification_type).
       - For example, for Discord provide C(discordWebhookUrl).
       - For Slack provide C(slackwebhookURL).
-      - Credential values in this dictionary are treated as no_log.
+      - Treated as no_log. Values whose key looks like a credential (password, token, key, webhook, URL, ...)
+        are masked wherever they appear; other values are shown so results stay readable.
+      - Provider configuration is never part of RV(notification) or the diff, whether it was set by this task
+        or read back from the server.
     type: dict
     default: {}
   state:
@@ -120,7 +123,9 @@ EXAMPLES = r"""
 
 RETURN = r"""
 notification:
-  description: The notification provider object after the operation.
+  description:
+    - The notification provider object after the operation.
+    - Only C(id), C(name), C(type), C(isDefault) and C(active); provider configuration is never returned.
   returned: success
   type: dict
   sample:
@@ -130,11 +135,12 @@ notification:
     isDefault: false
 """
 
+import re
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kuma_api import (
     UptimeKumaClient,
     UptimeKumaError,
-    compute_diff,
     needs_update,
     normalize_result,
     uptime_kuma_argument_spec,
@@ -157,6 +163,28 @@ WRITE_ONLY_FIELDS = {
 }
 
 
+# Provider config keys that look like credentials stay masked; the rest are unmasked
+# after argument parsing so short values (ports, hosts) do not shred the result.
+_SECRET_KEY = re.compile(r"pass|secret|token|key|webhook|url|auth|nsec|sender|credential|sid", re.IGNORECASE)
+_RETURNED_KEYS = {"id", "name", "type", "isDefault", "active"}
+
+
+def _out(notification):
+    return normalize_result({k: v for k, v in (notification or {}).items() if k in _RETURNED_KEYS})
+
+
+def _diff(before, after):
+    return {"before": _out(before), "after": _out(after)}
+
+
+def _unmask_benign_config(module, config):
+    secret = {str(v) for k, v in config.items() if _SECRET_KEY.search(k)}
+    module.no_log_values.difference_update(
+        str(v) for k, v in config.items()
+        if not _SECRET_KEY.search(k) and not isinstance(v, (bool, dict, list)) and str(v) not in secret
+    )
+
+
 def run_module(module):
     """Execute the notification module logic."""
     client = UptimeKumaClient(module)
@@ -172,6 +200,7 @@ def _run(module, client):
     """Inner logic separated for clean disconnect handling."""
     state = module.params["state"]
     name = module.params["name"]
+    _unmask_benign_config(module, module.params.get("notification_config") or {})
 
     existing = client.get_notification_by_name(name)
 
@@ -182,12 +211,12 @@ def _run(module, client):
         if module.check_mode:
             module.exit_json(
                 changed=True,
-                diff=compute_diff(existing, None),
-                notification=normalize_result(existing),
+                diff=_diff(existing, None),
+                notification=_out(existing),
             )
             return
         client.delete_notification(existing["id"])
-        module.exit_json(changed=True, diff=compute_diff(existing, None), notification={})
+        module.exit_json(changed=True, diff=_diff(existing, None), notification={})
         return
 
     # state == present
@@ -206,22 +235,22 @@ def _run(module, client):
 
     if existing is None:
         if module.check_mode:
-            module.exit_json(changed=True, diff=compute_diff(None, kwargs), notification=kwargs)
+            module.exit_json(changed=True, diff=_diff(None, kwargs), notification=_out(kwargs))
             return
         result = client.add_notification(**kwargs)
         notification_id = result.get("id")
         new_notif = client.get_notification(notification_id) if notification_id else result
         module.exit_json(
             changed=True,
-            diff=compute_diff(None, new_notif),
-            notification=normalize_result(new_notif),
+            diff=_diff(None, new_notif),
+            notification=_out(new_notif),
         )
         return
 
     # Check for updates
     desired_check = {"name": name, "type": notification_type, "isDefault": module.params["is_default"]}
     if not needs_update(existing, desired_check, exclude_keys=WRITE_ONLY_FIELDS):
-        module.exit_json(changed=False, notification=normalize_result(existing))
+        module.exit_json(changed=False, notification=_out(existing))
         return
 
     if module.check_mode:
@@ -229,8 +258,8 @@ def _run(module, client):
         after.update(desired_check)
         module.exit_json(
             changed=True,
-            diff=compute_diff(existing, after),
-            notification=normalize_result(after),
+            diff=_diff(existing, after),
+            notification=_out(after),
         )
         return
 
@@ -238,8 +267,8 @@ def _run(module, client):
     updated = client.get_notification(existing["id"])
     module.exit_json(
         changed=True,
-        diff=compute_diff(existing, updated),
-        notification=normalize_result(updated),
+        diff=_diff(existing, updated),
+        notification=_out(updated),
     )
 
 
@@ -251,7 +280,7 @@ def main():
         notification_type=dict(type="str"),
         is_default=dict(type="bool", default=False),
         apply_existing=dict(type="bool", default=False),
-        notification_config=dict(type="dict", default={}, no_log=False),
+        notification_config=dict(type="dict", default={}, no_log=True),
         state=dict(type="str", choices=["present", "absent"], default="present"),
     )
 
