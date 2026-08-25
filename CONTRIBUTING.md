@@ -85,16 +85,28 @@ breaking idempotency.
 
 ## Running Tests
 
-### Unit tests
+These are the same commands CI runs; all of them must pass before a PR is opened.
+
+### Unit tests (with the module_utils coverage floor)
 
 ```bash
-python -m pytest tests/unit/
+python -m pytest tests/unit/ --cov=plugins/module_utils --cov-fail-under=40
+```
+
+### Sanity
+
+`ansible-test` needs the collection checked out under an `ansible_collections/goodolclint/uptime_kuma` path:
+
+```bash
+ansible-test sanity --python 3.12 --requirements
 ```
 
 ### Integration tests
 
+Against the local dev instance (`tests/dev/up.sh`), with the collection on `ANSIBLE_COLLECTIONS_PATH`:
+
 ```bash
-ansible-test integration --docker
+ansible-playbook tests/integration/run.yml
 ```
 
 ## Adding a New Module
