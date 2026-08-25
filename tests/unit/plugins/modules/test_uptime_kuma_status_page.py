@@ -10,6 +10,7 @@ __metaclass__ = type
 
 from unittest.mock import MagicMock
 
+from plugins.module_utils.uptime_kuma_api import UptimeKumaServerError
 from plugins.modules import uptime_kuma_status_page as mod
 
 PARAMS = dict(state="present", slug="p", title="T", description=None, theme="auto", published=True, show_tags=False,
@@ -81,3 +82,21 @@ def test_analytics_and_domains_are_sent_in_2x_shape(run_module):
     saved = client.save_status_page.call_args.kwargs
     assert saved["analyticsId"] == "G-1" and saved["analyticsType"] == "google"
     assert saved["domainNameList"] == ["s.example.com"]
+
+
+def test_managed_groups_read_the_page_once(run_module):
+    groups = [{"name": "g", "monitorList": [{"id": 1}]}]
+    client = MagicMock()
+    client.get_status_page.return_value = dict(PAGE, publicGroupList=groups)
+    result, unused = run_module(mod, _params(public_group_list=groups), client)
+    assert result["changed"] is False
+    client.get_status_page_config.assert_not_called()
+    client.get_status_page.assert_called_once_with("p")
+
+    client = MagicMock()
+    client.get_status_page.side_effect = [UptimeKumaServerError("No slug?"), dict(PAGE, publicGroupList=groups)]
+    client.get_status_page_config.return_value = CONFIG
+    result, unused = run_module(mod, _params(public_group_list=groups), client)
+    assert result["changed"] is True and result["status_page"]["publicGroupList"] == groups
+    client.add_status_page.assert_called_once_with("p", "T")
+    assert client.save_status_page.call_args.kwargs["publicGroupList"] == groups
