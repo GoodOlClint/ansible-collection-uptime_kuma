@@ -1,7 +1,7 @@
 ---
 namespace: goodolclint
 name: uptime_kuma
-version: 0.2.1
+version: 0.3.0
 readme: README.md
 authors:
   - Clint Branham <goodolclint@gmail.com>

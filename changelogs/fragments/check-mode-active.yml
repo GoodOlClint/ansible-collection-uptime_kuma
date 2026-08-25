@@ -1,2 +1,0 @@
-bugfixes:
-  - uptime_kuma_monitor and uptime_kuma_api_key - the check-mode diff and result now show the predicted ``active`` state (they showed the current one).
