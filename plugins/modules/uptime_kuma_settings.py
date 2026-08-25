@@ -144,7 +144,9 @@ EXAMPLES = r"""
 
 RETURN = r"""
 settings:
-  description: The instance settings after the operation.
+  description:
+    - The instance settings after the operation.
+    - C(steamAPIKey) is omitted.
   returned: success
   type: dict
   sample:
@@ -166,11 +168,20 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
     compute_diff,
     needs_update,
     normalize_result,
+    scrub,
     uptime_kuma_argument_spec,
 )
 
-# steamAPIKey and password are write-only
 WRITE_ONLY_FIELDS = {"steamAPIKey", "password"}
+SENSITIVE_FIELDS = {"steamAPIKey"}
+
+
+def _out(settings):
+    return normalize_result(scrub(settings, SENSITIVE_FIELDS))
+
+
+def _diff(before, after):
+    return compute_diff(before, after, exclude_keys=SENSITIVE_FIELDS)
 
 
 def run_module(module):
@@ -190,7 +201,7 @@ def _run(module, client):
     current = client.get_settings()
 
     if state == "query":
-        module.exit_json(changed=False, settings=normalize_result(current))
+        module.exit_json(changed=False, settings=_out(current))
         return
 
     # state == present — build desired settings
@@ -216,11 +227,11 @@ def _run(module, client):
             desired[api_name] = value
 
     if not desired:
-        module.exit_json(changed=False, settings=normalize_result(current))
+        module.exit_json(changed=False, settings=_out(current))
         return
 
     if not needs_update(current, desired, exclude_keys=WRITE_ONLY_FIELDS):
-        module.exit_json(changed=False, settings=normalize_result(current))
+        module.exit_json(changed=False, settings=_out(current))
         return
 
     if module.check_mode:
@@ -228,8 +239,8 @@ def _run(module, client):
         after.update(desired)
         module.exit_json(
             changed=True,
-            diff=compute_diff(current, after),
-            settings=normalize_result(after),
+            diff=_diff(current, after),
+            settings=_out(after),
         )
         return
 
@@ -242,8 +253,8 @@ def _run(module, client):
     updated = client.get_settings()
     module.exit_json(
         changed=True,
-        diff=compute_diff(current, updated),
-        settings=normalize_result(updated),
+        diff=_diff(current, updated),
+        settings=_out(updated),
     )
 
 
