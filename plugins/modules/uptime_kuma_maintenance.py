@@ -71,6 +71,7 @@ options:
   time_range:
     description:
       - List of time range dicts with C(hours) and C(minutes) keys.
+      - C(seconds) is optional and defaults to 0.
     type: list
     elements: dict
   cron:
@@ -103,14 +104,17 @@ options:
   api_username:
     description:
       - Username for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_password:
     description:
       - Password for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_token:
     description:
       - Login token for authentication.
+      - Mutually exclusive with O(api_password).
     type: str
   validate_certs:
     description:

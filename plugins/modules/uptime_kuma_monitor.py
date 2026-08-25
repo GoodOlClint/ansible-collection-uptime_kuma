@@ -38,6 +38,9 @@ options:
     description:
       - Type of the monitor.
       - Required when O(state=present).
+      - C(oracledb), C(gamedig), C(radius), C(kafka-producer) and C(grpc-keyword) also need options this module
+        does not expose yet (database credentials, game, RADIUS credentials, brokers/topic, gRPC URL); a monitor
+        of those types created here stays down until it is completed in the UI.
     type: str
     choices:
       - group
@@ -70,17 +73,18 @@ options:
   url:
     description:
       - URL to monitor.
-      - Required for HTTP, keyword, JSON query, and real-browser monitor types.
+      - Required for HTTP, keyword, JSON query, real-browser, and WebSocket upgrade monitor types.
     type: str
   hostname:
     description:
       - Hostname or IP address.
-      - Required for port, ping, DNS, STEAM, MQTT, Radius, and Tailscale Ping types.
+      - Required for port, ping, DNS, NTP, SIP options, STEAM, GameDig, MQTT, Radius, and Tailscale Ping types.
+      - Radius defaults O(port) to 1812 when unset.
     type: str
   port:
     description:
       - Port number.
-      - Required for port, DNS, STEAM, MQTT, and Radius types.
+      - Required for port, SIP options, STEAM, GameDig, and MQTT types.
     type: int
   interval:
     description:
@@ -124,9 +128,9 @@ options:
   accepted_statuscodes:
     description:
       - List of accepted HTTP status codes.
+      - Defaults to V(200-299) when unset, or V(1000) (the WebSocket close code) for C(websocket-upgrade) monitors.
     type: list
     elements: str
-    default: ["200-299"]
   method:
     description:
       - HTTP method to use.
@@ -170,7 +174,8 @@ options:
     type: str
   database_connection_string:
     description:
-      - Connection string for database monitors (SQL Server, PostgreSQL, MySQL, MongoDB, Redis).
+      - Connection string for database monitors (SQL Server, PostgreSQL, MySQL, MongoDB, Redis, Oracle DB).
+      - Required to create a monitor of those types.
     type: str
   database_query:
     description:
@@ -259,14 +264,17 @@ options:
   api_username:
     description:
       - Username for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_password:
     description:
       - Password for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_token:
     description:
       - Login token for authentication.
+      - Mutually exclusive with O(api_password).
     type: str
   validate_certs:
     description:
@@ -465,6 +473,11 @@ _REQUIRED_ON_CREATE = {
     "real-browser": ("url",), "port": ("hostname", "port"), "ping": ("hostname",), "dns": ("hostname",),
     "tailscale-ping": ("hostname",), "docker": ("docker_container", "docker_host"),
     "mqtt": ("hostname", "port", "mqtt_topic"),
+    "sqlserver": ("database_connection_string",), "postgres": ("database_connection_string",),
+    "mysql": ("database_connection_string",), "mongodb": ("database_connection_string",),
+    "redis": ("database_connection_string",), "oracledb": ("database_connection_string",),
+    "steam": ("hostname", "port"), "gamedig": ("hostname", "port"), "radius": ("hostname",),
+    "ntp": ("hostname",), "sip-options": ("hostname", "port"), "websocket-upgrade": ("url",),
 }
 
 
@@ -611,7 +624,7 @@ def main():
         keyword=dict(type="str", no_log=False),
         ignore_tls=dict(type="bool", default=False),
         max_redirects=dict(type="int", default=10),
-        accepted_statuscodes=dict(type="list", elements="str", default=["200-299"]),
+        accepted_statuscodes=dict(type="list", elements="str"),
         method=dict(
             type="str", default="GET",
             choices=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],

@@ -49,8 +49,8 @@ options:
     default: auto
   published:
     description:
-      - Has no effect. Uptime Kuma 2.x does not change this after creation, so it is neither sent nor compared;
-        kept so existing playbooks keep validating.
+      - Deprecated, has no effect and will be removed in version 1.0.0 of the collection. Uptime Kuma 2.x does not
+        change this after creation, so it is neither sent nor compared; kept so existing playbooks keep validating.
     type: bool
     default: true
   show_tags:
@@ -107,14 +107,17 @@ options:
   api_username:
     description:
       - Username for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_password:
     description:
       - Password for authentication.
+      - Not required if O(api_token) is provided.
     type: str
   api_token:
     description:
       - Login token for authentication.
+      - Mutually exclusive with O(api_password).
     type: str
   validate_certs:
     description:
@@ -139,7 +142,6 @@ EXAMPLES = r"""
     slug: my-services
     title: My Services Status
     description: Current status of all services
-    published: true
     state: present
 
 - name: Create a status page with monitor groups
@@ -174,7 +176,6 @@ status_page:
   sample:
     slug: my-services
     title: My Services Status
-    published: true
     theme: auto
 """
 
@@ -182,6 +183,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kuma_api import (
     UptimeKumaClient,
     UptimeKumaError,
+    UptimeKumaServerError,
     compute_diff,
     needs_update,
     normalize_result,
@@ -191,10 +193,12 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
 
 def _get_existing_by_slug(client, slug, with_groups=False):
     """Return the page config for *slug* (plus public groups if *with_groups*), or None if no such page."""
-    config = client.get_status_page_config(slug)
-    if config is None or not with_groups:
-        return config
-    return client.get_status_page(slug)
+    if not with_groups:
+        return client.get_status_page_config(slug)
+    try:
+        return client.get_status_page(slug)
+    except UptimeKumaServerError:
+        return None
 
 
 def _groups(groups):
@@ -339,7 +343,8 @@ def main():
         title=dict(type="str"),
         description=dict(type="str"),
         theme=dict(type="str", choices=["auto", "light", "dark"], default="auto"),
-        published=dict(type="bool", default=True),
+        published=dict(type="bool", default=True, removed_in_version="1.0.0",
+                       removed_from_collection="goodolclint.uptime_kuma"),
         show_tags=dict(type="bool", default=False),
         show_powered_by=dict(type="bool", default=True),
         show_certificate_expiry=dict(type="bool", default=False),

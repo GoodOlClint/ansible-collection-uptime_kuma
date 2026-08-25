@@ -1,0 +1,31 @@
+bugfixes:
+  - >-
+    client - the retried requests (``login``, ``loginByToken``, ``needSetup``) wait at least 10 s per
+    attempt even when ``api_timeout`` is lower.
+  - >-
+    client - a public status page body that is not a JSON object is reported as a read error instead of an
+    ``AttributeError``.
+minor_changes:
+  - uptime_kuma_monitor_tag - returns a diff for added and removed assignments.
+  - uptime_kuma_status_page - managing ``public_group_list`` reads the page once instead of twice.
+  - >-
+    uptime_kuma_notification - documentation states that a key removed from ``notification_config`` is not
+    removed on the server.
+  - uptime_kuma_maintenance - ``time_range`` documentation states that ``seconds`` is optional and defaults to 0.
+  - >-
+    all modules - the ``api_username``, ``api_password`` and ``api_token`` descriptions state the credential
+    constraints.
+breaking_changes:
+  - >-
+    uptime_kuma_monitor - creating a ``ntp``, ``sip-options``, ``websocket-upgrade``, ``oracledb``, ``redis``,
+    ``sqlserver``, ``postgres``, ``mysql``, ``mongodb``, ``steam``, ``gamedig`` or ``radius`` monitor without its
+    target option (``hostname``/``port``, ``url`` or ``database_connection_string``) now fails up front instead
+    of creating a permanently-down monitor.
+  - >-
+    uptime_kuma_monitor - ``accepted_statuscodes`` no longer defaults to ``200-299`` on every run, so an unset
+    option no longer resets a value edited in the UI; when unset on create it defaults to ``200-299``, or to the
+    ``1000`` close code for ``websocket-upgrade`` monitors, which were previously created permanently down.
+deprecated_features:
+  - >-
+    uptime_kuma_status_page - ``published`` is deprecated and will be removed in version 1.0.0; Uptime Kuma 2.x
+    ignores it after creation.

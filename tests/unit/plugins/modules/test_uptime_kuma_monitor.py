@@ -10,6 +10,8 @@ __metaclass__ = type
 
 from unittest.mock import MagicMock
 
+import pytest
+
 
 def _make_module_and_client(params_override=None, check_mode=False):
     """Create a mock module and client for testing."""
@@ -441,6 +443,32 @@ class TestMonitorCreateRequirements:
             pass
         assert "needs url" in module.fail_json.call_args.kwargs["msg"]
         client.add_monitor.assert_not_called()
+
+    @pytest.mark.parametrize("monitor_type, missing", [
+        ("ntp", "hostname"), ("sip-options", "hostname, port"), ("websocket-upgrade", "url"),
+        ("oracledb", "database_connection_string"), ("redis", "database_connection_string"),
+        ("sqlserver", "database_connection_string"), ("postgres", "database_connection_string"),
+        ("mysql", "database_connection_string"), ("mongodb", "database_connection_string"),
+        ("steam", "hostname, port"), ("gamedig", "hostname, port"), ("radius", "hostname"),
+    ])
+    def test_every_targeted_type_needs_its_target(self, monitor_type, missing):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"url": None, "monitor_type": monitor_type})
+        module.fail_json = MagicMock(side_effect=SystemExit)
+        client.get_monitor_by_name.return_value = None
+        try:
+            uptime_kuma_monitor._run(module, client)
+        except SystemExit:
+            pass
+        assert f"needs {missing}" in module.fail_json.call_args.kwargs["msg"]
+        client.add_monitor.assert_not_called()
+
+    def test_manual_needs_nothing(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"url": None, "monitor_type": "manual"})
+        client.get_monitor_by_name.return_value = None
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True and client.add_monitor.called
 
     def test_partial_update_and_delete_do_not_need_them(self):
         from plugins.modules import uptime_kuma_monitor

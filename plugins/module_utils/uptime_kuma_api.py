@@ -53,7 +53,6 @@ MONITOR_DEFAULTS = {
     "expiryNotification": False,
     "maxredirects": 10,
     "method": "GET",
-    "accepted_statuscodes": ["200-299"],
     "packetSize": 56,
     "dns_resolve_type": "A",
     "dns_resolve_server": "1.1.1.1",
@@ -192,13 +191,15 @@ class UptimeKumaClient:
 
         ``retry`` re-sends an idempotent request once if its ack times out.
         Password logins are rate-limited (20/min) and a timed-out login still
-        succeeds server-side, so the retry is bounded to a single re-send.
+        succeeds server-side, so the retry is bounded to a single re-send and
+        each attempt waits at least 10 s (a 2.x password login takes ~3.5 s).
         """
         data = args[0] if len(args) == 1 else (args or None)
         attempts = 2 if retry else 1
+        timeout = max(self.timeout, 10) if retry else self.timeout
         for attempt in range(attempts):
             try:
-                reply = self._sio.call(event, data, timeout=self.timeout)
+                reply = self._sio.call(event, data, timeout=timeout)
                 break
             except socketio.exceptions.TimeoutError as exc:
                 if attempt == attempts - 1:
@@ -255,7 +256,7 @@ class UptimeKumaClient:
         if isinstance(ids, list):
             data["notificationIDList"] = {str(i): True for i in ids}
         if not data.get("accepted_statuscodes"):
-            data["accepted_statuscodes"] = ["200-299"]
+            data["accepted_statuscodes"] = ["1000"] if data.get("type") == "websocket-upgrade" else ["200-299"]
         return data
 
     def get_monitors(self):
@@ -375,9 +376,11 @@ class UptimeKumaClient:
             with open_url(url, timeout=self.timeout,
                           validate_certs=self.module.params.get("validate_certs", True)) as resp:
                 public = json.loads(resp.read())
+            if not isinstance(public, dict):
+                raise ValueError(f"expected a JSON object, got {type(public).__name__}")
+            config.update(public.get("config") or {})
         except Exception as exc:  # noqa: BLE001  (urls.py raises its own hierarchy plus http.client's)
             raise UptimeKumaError(f"Could not read the public status page at {url}: {exc}") from exc
-        config.update(public.get("config") or {})
         return {
             **config,
             "incident": public.get("incident"),
@@ -456,8 +459,8 @@ class UptimeKumaClient:
                 return key
         return None
 
-    # apiKeyList has a getter, so the next get_api_keys() refreshes it; no need to wait for the push here,
-    # and waiting after addAPIKey could discard the ack that carries the one-time key.
+    # Not wrapped in _expect: a slow apiKeyList re-push would raise and fail a task whose addAPIKey already
+    # succeeded, losing the one-time key carried in the ack. apiKeyList has a getter, so get_api_keys() refreshes.
     def add_api_key(self, name, expires, active):
         return self._call("addAPIKey", {"name": name, "expires": expires, "active": 1 if active else 0})
 
