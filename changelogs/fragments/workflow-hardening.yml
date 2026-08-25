@@ -1,0 +1,8 @@
+trivial:
+  - >-
+    ci - the interactive @claude workflow only fires for repository owners, members and
+    collaborators and verifies the actor has write access before running; CI runs on every pull
+    request (so stacked PRs carry their checks before retargeting) with a read-only token, cancels
+    superseded PR runs and pins its tools; the release workflow refuses to publish a tag that is not
+    on main, waits for that commit's CI run to pass, and configures the Galaxy token through the
+    environment so it never appears on a command line.
