@@ -376,3 +376,54 @@ class TestMonitorDrift:
         calls = [c[0] for c in client.mock_calls]
         assert calls.index("pause_monitor") < calls.index("get_monitor")
         assert result["monitor"]["active"] is False
+
+
+class TestMonitorActiveState:
+    EXISTING = TestMonitorDrift.EXISTING
+
+    def test_pause_and_resume_existing(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"active": False})
+        client.get_monitor_by_name.return_value = self.EXISTING
+        client.get_monitor.return_value = dict(self.EXISTING, active=False)
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        client.pause_monitor.assert_called_once_with(7)
+        client.edit_monitor.assert_not_called()
+
+        module, client, result = _make_module_and_client()
+        client.get_monitor_by_name.return_value = dict(self.EXISTING, active=False)
+        client.get_monitor.return_value = self.EXISTING
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        client.resume_monitor.assert_called_once_with(7)
+
+    def test_check_mode_active_only_change_predicts_the_diff(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"active": False}, check_mode=True)
+        client.get_monitor_by_name.return_value = self.EXISTING
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        assert result["diff"]["before"]["active"] is True and result["diff"]["after"]["active"] is False
+        client.pause_monitor.assert_not_called()
+
+    def test_check_mode_field_and_active_change_predicts_both(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"active": False, "interval": 300}, check_mode=True)
+        client.get_monitor_by_name.return_value = self.EXISTING
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        assert result["diff"]["after"]["interval"] == 300 and result["diff"]["after"]["active"] is False
+        client.edit_monitor.assert_not_called()
+
+    def test_unknown_parent_group_fails(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"parent": "nope"})
+        module.fail_json = MagicMock(side_effect=SystemExit)
+        client.get_monitor_by_name.return_value = None
+        try:
+            uptime_kuma_monitor._run(module, client)
+        except SystemExit:
+            pass
+        assert "Group monitor 'nope'" in module.fail_json.call_args.kwargs["msg"]
+        client.add_monitor.assert_not_called()

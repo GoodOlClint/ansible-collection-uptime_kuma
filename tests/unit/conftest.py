@@ -14,6 +14,8 @@ import os
 import sys
 from unittest.mock import MagicMock
 
+import pytest
+
 # Create the ansible_collections namespace package structure
 # so that "from ansible_collections.goodolclint.uptime_kuma.plugins..."
 # resolves to our local plugins/ directory.
@@ -45,3 +47,30 @@ for _name in (_PKG, _GCOL, _UK, _PLUG, _MU):
     sys.modules[_name].__path__ = []
 
 sys.modules[f"{_MU}.uptime_kuma_api"] = real_api
+
+
+@pytest.fixture
+def run_module():
+    """Run a module's ``_run`` with a mocked AnsibleModule; exit/fail stop execution like the real ones."""
+    def _run(mod, params, client=None, check_mode=False):
+        module = MagicMock()
+        module.params = params
+        module.check_mode = check_mode
+        module.no_log_values = set()
+        result = {}
+
+        def exit_json(**kwargs):
+            result.update(kwargs)
+            raise SystemExit
+
+        def fail_json(**kwargs):
+            result.update(kwargs, failed=True)
+            raise SystemExit
+        module.exit_json, module.fail_json = exit_json, fail_json
+        client = client if client is not None else MagicMock()
+        try:
+            mod._run(module, client)
+        except SystemExit:
+            pass
+        return result, client
+    return _run
