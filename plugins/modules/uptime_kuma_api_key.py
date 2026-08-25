@@ -83,6 +83,7 @@ EXAMPLES = r"""
     active: true
     state: present
   register: api_key_result
+  no_log: true
 
 - name: Create an API key that never expires
   goodolclint.uptime_kuma.uptime_kuma_api_key:
@@ -117,6 +118,7 @@ key:
     - The API key value.
     - Only returned when a new key is created.
     - This value cannot be retrieved later — store it securely.
+    - Returned in clear; set I(no_log) to V(true) on the task that registers it.
   returned: when a new key is created
   type: str
   sample: uk1_9XPRjV7ilGj9CvWRKYiBPq9GLtQs74UzTxKfCxWY

@@ -19,6 +19,8 @@ description:
     playbooks that run many tasks should log in once and pass the token as C(api_token)
     to every other module.
   - Never reports changed.
+  - The token authenticates as the logged-in user and is returned in clear; set I(no_log) to V(true)
+    on the task that registers it.
 options:
   api_url:
     description:
@@ -56,6 +58,7 @@ EXAMPLES = r"""
     api_username: admin
     api_password: secret123
   register: kuma
+  no_log: true
 
 - name: Use the token for every other task
   goodolclint.uptime_kuma.uptime_kuma_tag:
@@ -67,7 +70,9 @@ EXAMPLES = r"""
 
 RETURN = r"""
 token:
-  description: Session token to pass as C(api_token).
+  description:
+    - Session token to pass as C(api_token).
+    - Returned in clear; set I(no_log) to V(true) on the task that registers it.
   returned: success
   type: str
 """

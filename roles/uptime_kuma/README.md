@@ -26,7 +26,7 @@ The role logs in once with `uptime_kuma_login` and passes the session token to e
 | `uptime_kuma_monitor_tags` | `[]` | `uptime_kuma_monitor_tag` items (`monitor_name`, `tag_name`, `value`) |
 | `uptime_kuma_status_pages` | `[]` | `uptime_kuma_status_page` items |
 | `uptime_kuma_maintenances` | `[]` | `uptime_kuma_maintenance` items |
-| `uptime_kuma_api_keys` | `[]` | `uptime_kuma_api_key` items |
+| `uptime_kuma_api_keys` | `[]` | `uptime_kuma_api_key` items; a newly created key's value is only available on the run that created it, as `uptime_kuma_api_keys_result.results[*].key` (the task runs with `no_log`, so a failure in it reports only that output was hidden) |
 | `uptime_kuma_settings` | `{}` | Keys for `uptime_kuma_settings`; skipped when empty |
 
 Each list item accepts the corresponding module's options by the same name plus `state` (default `present`). Notifications are managed before monitors so monitors can reference them with `notification_names`.

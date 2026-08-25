@@ -16,10 +16,12 @@
         api_username: "{{ uptime_kuma_api_username }}"
         api_password: "{{ uptime_kuma_api_password }}"
       register: kuma_login
+      no_log: true
 
     - name: Expose the token to the targets
       ansible.builtin.set_fact:
         uptime_kuma_api_token: "{{ kuma_login.token }}"
+      no_log: true
 
     - name: Run target {{ item }}
       ansible.builtin.include_tasks: "targets/{{ item }}/tasks/main.yml"
