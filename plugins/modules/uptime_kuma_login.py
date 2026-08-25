@@ -16,7 +16,7 @@ version_added: "0.2.0"
 description:
   - Logs in with username and password and returns the session token.
   - Uptime Kuma rate-limits password logins to 20 per minute but not token logins, so
-    playbooks that run many tasks should log in once and pass the token as O(api_token)
+    playbooks that run many tasks should log in once and pass the token as C(api_token)
     to every other module.
   - Never reports changed.
 options:
