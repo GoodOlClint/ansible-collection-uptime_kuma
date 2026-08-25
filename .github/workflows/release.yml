@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read
+      actions: write
       checks: read
     steps:
       - uses: actions/checkout@v7
@@ -32,7 +32,7 @@ jobs:
             exit 1
           fi
           for _ in $(seq 1 90); do
-            run_id="$(gh run list --workflow ci.yml --commit "$sha" --event push --branch main --json databaseId --jq '.[0].databaseId // empty')"
+            run_id="$(gh run list --workflow ci.yml --commit "$sha" --event push --branch main --json databaseId --jq '.[0].databaseId // empty')" || true
             [ -n "$run_id" ] && break
             sleep 10
           done
@@ -40,7 +40,26 @@ jobs:
             echo "::error::no CI run found for ${sha} on main"
             exit 1
           fi
-          gh run watch "$run_id" --exit-status
+          conclusion=""
+          for _ in 1 2 3; do
+            if gh run watch "$run_id" --exit-status; then
+              conclusion=success
+              break
+            fi
+            conclusion="$(gh run view "$run_id" --json conclusion --jq .conclusion)" || conclusion=""
+            [ "$conclusion" = "cancelled" ] || break
+            echo "CI run ${run_id} was cancelled (concurrency group); re-running it"
+            gh run rerun "$run_id" || { echo "::error::CI run ${run_id} cannot be re-run"; exit 1; }
+            for _ in $(seq 1 30); do
+              status="$(gh run view "$run_id" --json status --jq .status)" || status=""
+              [ "$status" != "completed" ] && break
+              sleep 5
+            done
+          done
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::CI run ${run_id} did not finish green (${conclusion:-unknown})"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v7
