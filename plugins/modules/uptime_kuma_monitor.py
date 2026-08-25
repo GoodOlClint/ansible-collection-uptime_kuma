@@ -124,6 +124,7 @@ options:
     description:
       - Send a notification when the target's TLS certificate is about to expire (HTTPS targets).
       - Unset leaves the server's value alone, so a monitor toggled in the UI is not reset.
+    version_added: "0.3.1"
     type: bool
   max_redirects:
     description:

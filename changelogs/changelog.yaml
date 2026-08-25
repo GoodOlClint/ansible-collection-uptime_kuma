@@ -241,3 +241,16 @@ releases:
       - scrub-secrets.yml
       - workflow-hardening.yml
     release_date: '2026-08-25'
+  0.3.1:
+    changes:
+      minor_changes:
+        - uptime_kuma_monitor - new ``expiry_notification`` option (Uptime Kuma's
+          "Certificate Expiry Notification" toggle, sent as ``expiryNotification``);
+          it has no default, so an unset option leaves a value toggled in the UI alone.
+          The ``uptime_kuma`` role passes it through per monitor.
+      release_summary: Adds the ``expiry_notification`` monitor option (Certificate
+        Expiry Notification), also passed through by the ``uptime_kuma`` role.
+    fragments:
+      - monitor-expiry-notification.yml
+      - release-summary.yml
+    release_date: '2026-08-25'
