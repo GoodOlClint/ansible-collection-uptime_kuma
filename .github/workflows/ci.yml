@@ -113,7 +113,7 @@ jobs:
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
         run: |
           cp integration_config.yml.template integration_config.yml
-          ansible-playbook run.yml
+          ansible-playbook run.yml -e uptime_kuma_fresh_instance=true
 
   build:
     name: Build Collection

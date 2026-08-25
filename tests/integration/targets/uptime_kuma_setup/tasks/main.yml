@@ -14,6 +14,14 @@
     password: "{{ uptime_kuma_api_password }}"
   register: first
 
+- name: Verify the first run created the account on a fresh instance
+  ansible.builtin.assert:
+    that:
+      - check is changed
+      - first is changed
+      - first.setup_performed is true
+  when: uptime_kuma_fresh_instance | default(false)
+
 - name: Run setup again
   goodolclint.uptime_kuma.uptime_kuma_setup:
     api_url: "{{ uptime_kuma_api_url }}"
@@ -38,11 +46,3 @@
     name: setup-probe
     color: "#000000"
     state: absent
-
-- name: Verify the first run created the account on a fresh instance
-  ansible.builtin.assert:
-    that:
-      - check is changed
-      - first is changed
-      - first.setup_performed is true
-  when: uptime_kuma_fresh_instance | default(false)

@@ -1,5 +1,41 @@
 ---
 - name: Test the uptime_kuma role
+  vars:
+    uptime_kuma_notifications:
+      - name: integration-role-webhook
+        notification_type: webhook
+        notification_config:
+          webhookURL: https://example.com/role-hook
+          webhookContentType: "application/json"
+    uptime_kuma_tags:
+      - name: integration-role-tag
+        color: "#123456"
+    uptime_kuma_monitor_defaults:
+      interval: 120
+      notification_names: [integration-role-webhook]
+    uptime_kuma_monitors:
+      - name: integration-role-monitor
+        monitor_type: http
+        url: https://example.com
+      - name: integration-role-monitor-2
+        monitor_type: http
+        url: https://example.org
+        interval: 300
+    uptime_kuma_monitor_tags:
+      - monitor_name: integration-role-monitor
+        tag_name: integration-role-tag
+    uptime_kuma_status_pages:
+      - slug: integration-role-page
+        title: Integration Role Page
+        show_tags: true
+        custom_css: "body { color: red; }"
+    uptime_kuma_maintenances:
+      - title: integration-role-maintenance
+        strategy: cron
+        cron: "0 5 * * *"
+        duration_minutes: 45
+    uptime_kuma_settings:
+      keep_data_period_days: 120
   block:
     - name: Precondition retention so the role's value is a real change
       goodolclint.uptime_kuma.uptime_kuma_settings:
@@ -11,42 +47,10 @@
     - name: Apply the role
       ansible.builtin.include_role:
         name: goodolclint.uptime_kuma.uptime_kuma
-      vars:
-        uptime_kuma_notifications:
-          - name: integration-role-webhook
-            notification_type: webhook
-            notification_config:
-              webhookURL: https://example.com/role-hook
-              webhookContentType: "application/json"
-        uptime_kuma_tags:
-          - name: integration-role-tag
-            color: "#123456"
-        uptime_kuma_monitor_defaults:
-          interval: 120
-          notification_names: [integration-role-webhook]
-        uptime_kuma_monitors:
-          - name: integration-role-monitor
-            monitor_type: http
-            url: https://example.com
-          - name: integration-role-monitor-2
-            monitor_type: http
-            url: https://example.org
-            interval: 300
-        uptime_kuma_monitor_tags:
-          - monitor_name: integration-role-monitor
-            tag_name: integration-role-tag
-        uptime_kuma_status_pages:
-          - slug: integration-role-page
-            title: Integration Role Page
-            show_tags: true
-            custom_css: "body { color: red; }"
-        uptime_kuma_maintenances:
-          - title: integration-role-maintenance
-            strategy: cron
-            cron: "0 5 * * *"
-            duration_minutes: 45
-        uptime_kuma_settings:
-          keep_data_period_days: 120
+
+    - name: Apply the role again (a second pass must neither fail nor duplicate anything)
+      ansible.builtin.include_role:
+        name: goodolclint.uptime_kuma.uptime_kuma
 
     - name: Re-apply each managed resource directly to prove the role converged
       goodolclint.uptime_kuma.uptime_kuma_monitor:

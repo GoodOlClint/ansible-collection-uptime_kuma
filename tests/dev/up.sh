@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Bring up a throwaway Uptime Kuma 2.x and create the admin the integration tests expect.
-# Usage: tests/dev/up.sh [down|fresh]   (fresh: recreate the volume and leave setup to the suite)
+# Usage: tests/dev/up.sh [down|fresh]
+# fresh: recreate the volume and leave setup to the suite; run it with -e uptime_kuma_fresh_instance=true once.
 set -euo pipefail
 cd "$(dirname "$0")"
 if [[ "${1:-}" == "down" ]]; then docker compose down -v; exit 0; fi
@@ -27,10 +28,12 @@ print("login:", call("login", {"username": USER, "password": PASS, "token": ""})
 sio.disconnect()
 PY
 fi
-cat > ../integration/integration_config.yml <<YML
+cat > ../integration/integration_config.yml <<'YML'
 uptime_kuma_api_url: "http://localhost:3001"
 uptime_kuma_api_username: "admin"
 uptime_kuma_api_password: "Ansible-Dev-Pass-1"
-uptime_kuma_fresh_instance: $fresh
 YML
-echo "dev instance ready at http://localhost:3001 (admin / Ansible-Dev-Pass-1, fresh=$fresh)"
+echo "dev instance ready at http://localhost:3001 (admin / Ansible-Dev-Pass-1)"
+if [[ "$fresh" == true ]]; then
+  echo "fresh instance: run the suite once with -e uptime_kuma_fresh_instance=true to assert the setup create path"
+fi
