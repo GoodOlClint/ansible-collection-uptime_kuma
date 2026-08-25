@@ -37,6 +37,13 @@
     uptime_kuma_settings:
       keep_data_period_days: 120
   block:
+    - name: Remember the current retention
+      goodolclint.uptime_kuma.uptime_kuma_settings:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        state: query
+      register: role_settings_before
+
     - name: Precondition retention so the role's value is a real change
       goodolclint.uptime_kuma.uptime_kuma_settings:
         api_url: "{{ uptime_kuma_api_url }}"
@@ -48,7 +55,7 @@
       ansible.builtin.include_role:
         name: goodolclint.uptime_kuma.uptime_kuma
 
-    - name: Apply the role again (a second pass must neither fail nor duplicate anything)
+    - name: Apply the role again (a second pass must not fail; convergence is asserted below)
       ansible.builtin.include_role:
         name: goodolclint.uptime_kuma.uptime_kuma
 
@@ -193,4 +200,13 @@
         api_token: "{{ uptime_kuma_api_token }}"
         title: integration-role-maintenance
         state: absent
+      failed_when: false
+
+    - name: Restore retention
+      goodolclint.uptime_kuma.uptime_kuma_settings:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        keep_data_period_days: "{{ role_settings_before.settings.keepDataPeriodDays | default(180) }}"
+        state: present
+      when: role_settings_before is defined
       failed_when: false
