@@ -10,199 +10,68 @@ __metaclass__ = type
 
 from unittest.mock import MagicMock
 
+from plugins.modules import uptime_kuma_tag as mod
 
-class TestTagPresent:
-    def test_create_new_tag(self):
-        """Create a tag when it does not exist."""
-        from plugins.modules import uptime_kuma_tag
-
-        mock_module = MagicMock()
-        mock_module.params = {"state": "present", "name": "new-tag", "color": "#ff0000"}
-        mock_module.check_mode = False
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
-        client = MagicMock()
-        client.get_tag_by_name.return_value = None
-        client.add_tag.return_value = {"id": 1, "name": "new-tag", "color": "#ff0000"}
-
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is True
-        client.add_tag.assert_called_once_with(name="new-tag", color="#ff0000")
-
-    def test_no_change_when_identical(self):
-        """No change when tag already exists with same values."""
-        from plugins.modules import uptime_kuma_tag
-
-        mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "present",
-            "name": "existing-tag",
-            "color": "#ff0000",
-        }
-        mock_module.check_mode = False
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
-
-        client = MagicMock()
-        client.get_tag_by_name.return_value = {
-            "id": 1, "name": "existing-tag", "color": "#ff0000"
-        }
-
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is False
-        client.add_tag.assert_not_called()
-        client.edit_tag.assert_not_called()
-
-    def test_update_when_color_differs(self):
-        """Update when tag exists but color differs."""
-        from plugins.modules import uptime_kuma_tag
-
-        mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "present",
-            "name": "existing-tag",
-            "color": "#00ff00",
-        }
-        mock_module.check_mode = False
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
-
-        client = MagicMock()
-        client.get_tag_by_name.return_value = {
-            "id": 1, "name": "existing-tag", "color": "#ff0000"
-        }
-        client.edit_tag.return_value = {
-            "tag": {"id": 1, "name": "existing-tag", "color": "#00ff00"}
-        }
-
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is True
-        client.edit_tag.assert_called_once()
+EXISTING = {"id": 1, "name": "existing-tag", "color": "#ff0000"}
 
 
-class TestTagAbsent:
-    def test_delete_existing_tag(self):
-        """Delete a tag that exists."""
-        from plugins.modules import uptime_kuma_tag
-
-        mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "absent",
-            "name": "existing-tag",
-            "color": None,
-        }
-        mock_module.check_mode = False
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
-
-        client = MagicMock()
-        client.get_tag_by_name.return_value = {
-            "id": 1, "name": "existing-tag", "color": "#ff0000"
-        }
-
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is True
-        client.delete_tag.assert_called_once_with(1)
-
-    def test_no_change_when_absent(self):
-        """No change when tag does not exist and state=absent."""
-        from plugins.modules import uptime_kuma_tag
-
-        mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "absent",
-            "name": "nonexistent-tag",
-            "color": None,
-        }
-        mock_module.check_mode = False
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
-
-        client = MagicMock()
-        client.get_tag_by_name.return_value = None
-
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is False
-        client.delete_tag.assert_not_called()
+def _params(**over):
+    return dict({"state": "present", "name": "existing-tag", "color": "#ff0000"}, **over)
 
 
-class TestTagCheckMode:
-    def test_check_mode_create(self):
-        """Check mode reports change for new tag without creating."""
-        from plugins.modules import uptime_kuma_tag
+def _client(existing):
+    client = MagicMock()
+    client.get_tag_by_name.return_value = existing
+    return client
 
-        mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "present",
-            "name": "new-tag",
-            "color": "#ff0000",
-        }
-        mock_module.check_mode = True
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
 
-        client = MagicMock()
-        client.get_tag_by_name.return_value = None
+def test_create_new_tag(run_module):
+    client = _client(None)
+    client.add_tag.return_value = {"id": 1, "name": "new-tag", "color": "#ff0000"}
+    result, unused = run_module(mod, _params(name="new-tag"), client)
+    assert result["changed"] is True
+    client.add_tag.assert_called_once_with(name="new-tag", color="#ff0000")
 
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is True
-        client.add_tag.assert_not_called()
 
-    def test_check_mode_delete(self):
-        """Check mode reports change for existing tag without deleting."""
-        from plugins.modules import uptime_kuma_tag
+def test_no_change_when_identical(run_module):
+    client = _client(EXISTING)
+    result, unused = run_module(mod, _params(), client)
+    assert result["changed"] is False
+    client.add_tag.assert_not_called()
+    client.edit_tag.assert_not_called()
 
-        mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "absent",
-            "name": "existing-tag",
-            "color": None,
-        }
-        mock_module.check_mode = True
-        exit_result = {}
-        mock_module.exit_json = lambda **kw: exit_result.update(kw)
 
-        client = MagicMock()
-        client.get_tag_by_name.return_value = {
-            "id": 1, "name": "existing-tag", "color": "#ff0000"
-        }
+def test_update_when_color_differs(run_module):
+    client = _client(EXISTING)
+    client.edit_tag.return_value = {"tag": dict(EXISTING, color="#00ff00")}
+    result, unused = run_module(mod, _params(color="#00ff00"), client)
+    assert result["changed"] is True
+    client.edit_tag.assert_called_once()
 
-        uptime_kuma_tag._run(mock_module, client)
-        assert exit_result.get("changed") is True
-        client.delete_tag.assert_not_called()
+
+def test_delete_existing_tag(run_module):
+    client = _client(EXISTING)
+    result, unused = run_module(mod, _params(state="absent", color=None), client)
+    assert result["changed"] is True
+    client.delete_tag.assert_called_once_with(1)
+
+
+def test_no_change_when_absent(run_module):
+    client = _client(None)
+    result, unused = run_module(mod, _params(state="absent", name="nonexistent-tag", color=None), client)
+    assert result["changed"] is False
+    client.delete_tag.assert_not_called()
+
+
+def test_check_mode_create(run_module):
+    client = _client(None)
+    result, unused = run_module(mod, _params(name="new-tag"), client, check_mode=True)
+    assert result["changed"] is True
+    client.add_tag.assert_not_called()
+
+
+def test_check_mode_delete(run_module):
+    client = _client(EXISTING)
+    result, unused = run_module(mod, _params(state="absent", color=None), client, check_mode=True)
+    assert result["changed"] is True
+    client.delete_tag.assert_not_called()
