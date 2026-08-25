@@ -41,6 +41,7 @@
       ansible.builtin.assert:
         that:
           - create_result is changed
+          - create_result.monitor.active
           - create_result.monitor.name == "integration-test-monitor"
           - "'basic_auth_pass' not in create_result.monitor"
           - "'tlsKey' not in create_result.monitor"
@@ -225,6 +226,7 @@
           - typed_create.results[1].monitor.accepted_statuscodes == ["1000"]
           - "'databaseConnectionString' not in typed_create.results[2].monitor"
           - typed_create.results[3].monitor.port == 5060
+          - typed_create.results | map(attribute='monitor.active') | select | list | length == 0
 
     # ── CHECK MODE ────────────────────────────────────────────────────
     - name: Delete monitor in check mode

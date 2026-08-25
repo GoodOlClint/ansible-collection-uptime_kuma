@@ -547,13 +547,12 @@ def _run(module, client):
         if missing:
             module.fail_json(msg=f"monitor_type={monitor_type} needs {', '.join(missing)} to create a monitor")
             return
+        kwargs["active"] = bool(active)
         if module.check_mode:
             module.exit_json(changed=True, diff=_diff(None, kwargs), monitor=_out(kwargs))
             return
         result = client.add_monitor(**kwargs)
         monitor_id = result.get("monitorID")
-        if not active and monitor_id:
-            client.pause_monitor(monitor_id)
         new_monitor = client.get_monitor(monitor_id) if monitor_id else result
         module.exit_json(
             changed=True,
@@ -569,7 +568,7 @@ def _run(module, client):
 
     if needs_update(existing, kwargs):
         if module.check_mode:
-            after = dict(existing, **kwargs, active=active)
+            after = {**existing, **kwargs, "active": active}
             module.exit_json(
                 changed=True,
                 diff=_diff(existing, after),
