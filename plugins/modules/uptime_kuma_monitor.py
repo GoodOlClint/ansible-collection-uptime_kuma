@@ -70,17 +70,17 @@ options:
   url:
     description:
       - URL to monitor.
-      - Required for HTTP, keyword, JSON query, and real-browser monitor types.
+      - Required for HTTP, keyword, JSON query, real-browser, and WebSocket upgrade monitor types.
     type: str
   hostname:
     description:
       - Hostname or IP address.
-      - Required for port, ping, DNS, STEAM, MQTT, Radius, and Tailscale Ping types.
+      - Required for port, ping, DNS, NTP, SIP options, STEAM, GameDig, MQTT, Radius, and Tailscale Ping types.
     type: str
   port:
     description:
       - Port number.
-      - Required for port, DNS, STEAM, MQTT, and Radius types.
+      - Required for port, DNS, SIP options, STEAM, GameDig, MQTT, and Radius types.
     type: int
   interval:
     description:
@@ -170,7 +170,8 @@ options:
     type: str
   database_connection_string:
     description:
-      - Connection string for database monitors (SQL Server, PostgreSQL, MySQL, MongoDB, Redis).
+      - Connection string for database monitors (SQL Server, PostgreSQL, MySQL, MongoDB, Redis, Oracle DB).
+      - Required to create a monitor of those types.
     type: str
   database_query:
     description:
@@ -465,6 +466,11 @@ _REQUIRED_ON_CREATE = {
     "real-browser": ("url",), "port": ("hostname", "port"), "ping": ("hostname",), "dns": ("hostname",),
     "tailscale-ping": ("hostname",), "docker": ("docker_container", "docker_host"),
     "mqtt": ("hostname", "port", "mqtt_topic"),
+    "sqlserver": ("database_connection_string",), "postgres": ("database_connection_string",),
+    "mysql": ("database_connection_string",), "mongodb": ("database_connection_string",),
+    "redis": ("database_connection_string",), "oracledb": ("database_connection_string",),
+    "steam": ("hostname", "port"), "gamedig": ("hostname", "port"), "radius": ("hostname", "port"),
+    "ntp": ("hostname",), "sip-options": ("hostname", "port"), "websocket-upgrade": ("url",),
 }
 
 
