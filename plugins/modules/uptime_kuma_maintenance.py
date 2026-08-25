@@ -71,6 +71,7 @@ options:
   time_range:
     description:
       - List of time range dicts with C(hours) and C(minutes) keys.
+      - C(seconds) is optional and defaults to 0.
     type: list
     elements: dict
   cron:
