@@ -72,11 +72,13 @@ options:
   duration_minutes:
     description:
       - Duration in minutes for the maintenance window.
+      - Only sent for O(strategy=cron); the recurring strategies take their window from O(time_range).
     type: int
     default: 60
   timezone:
     description:
-      - Timezone for the maintenance schedule.
+      - Timezone for the maintenance schedule, for example V(UTC) or V(America/New_York).
+      - V(SAME_AS_SERVER) (the server default when unset) uses the instance timezone.
     type: str
   state:
     description:
@@ -139,7 +141,6 @@ EXAMPLES = r"""
         minutes: 0
       - hours: 4
         minutes: 0
-    duration_minutes: 120
     state: present
 
 - name: Create a cron-based maintenance window
@@ -206,7 +207,7 @@ def _build_maintenance_kwargs(module):
     if params.get("days_of_month") is not None:
         kwargs["daysOfMonth"] = params["days_of_month"]
     if params.get("time_range") is not None:
-        kwargs["timeRange"] = params["time_range"]
+        kwargs["timeRange"] = [dict({"seconds": 0}, **t) for t in params["time_range"]]
     if params.get("timezone") is not None:
         kwargs["timezoneOption"] = params["timezone"]
 
@@ -230,6 +231,8 @@ def _run(module, client):
     title = module.params["title"]
 
     existing = client.get_maintenance_by_title(title)
+    if existing is not None:
+        existing = client.get_maintenance(existing["id"])
 
     if state == "absent":
         if existing is None:
@@ -265,7 +268,11 @@ def _run(module, client):
 
     # Update if needed
     exclude = {"id", "timezoneOption"}
-    if not needs_update(existing, kwargs, exclude_keys=exclude):
+    # The list serialises the in-memory beans, whose run() fills an unset timezone with "UTC";
+    # getMaintenance reloads from the database and returns the stored value (None).
+    desired_tz = kwargs.get("timezoneOption")
+    tz_changed = desired_tz is not None and (existing.get("timezoneOption") or "SAME_AS_SERVER") != desired_tz
+    if not needs_update(existing, kwargs, exclude_keys=exclude) and not tz_changed:
         module.exit_json(changed=False, maintenance=normalize_result(existing))
         return
 

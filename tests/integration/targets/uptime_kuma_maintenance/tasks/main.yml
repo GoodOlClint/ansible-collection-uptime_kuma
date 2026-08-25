@@ -31,6 +31,35 @@
         that:
           - idem_result is not changed
 
+    - name: Set the timezone
+      goodolclint.uptime_kuma.uptime_kuma_maintenance:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        title: integration-test-maintenance
+        strategy: manual
+        description: Test maintenance window
+        timezone: UTC
+        state: present
+      register: tz_result
+
+    - name: Re-run with the timezone
+      goodolclint.uptime_kuma.uptime_kuma_maintenance:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        title: integration-test-maintenance
+        strategy: manual
+        description: Test maintenance window
+        timezone: UTC
+        state: present
+      register: tz_idem
+
+    - name: Verify timezone drift was applied once
+      ansible.builtin.assert:
+        that:
+          - tz_result is changed
+          - tz_idem is not changed
+          - tz_idem.maintenance.timezoneOption == "UTC"
+
     - name: Delete maintenance
       goodolclint.uptime_kuma.uptime_kuma_maintenance:
         api_url: "{{ uptime_kuma_api_url }}"
@@ -56,3 +85,12 @@
       ansible.builtin.assert:
         that:
           - delete_idem is not changed
+
+  always:
+    - name: Clean up
+      goodolclint.uptime_kuma.uptime_kuma_maintenance:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        title: integration-test-maintenance
+        state: absent
+      failed_when: false
