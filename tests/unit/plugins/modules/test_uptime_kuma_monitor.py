@@ -342,3 +342,37 @@ class TestMonitorSecrets:
         uptime_kuma_monitor._run(module, client)
         assert result["changed"] is False
         self._assert_scrubbed(result)
+
+
+class TestMonitorDrift:
+    EXISTING = dict(id=7, name="test-monitor", type="http", url="https://example.com", active=True, interval=60,
+                    retryInterval=60, maxretries=1, upsideDown=False, timeout=48, resendInterval=0,
+                    invertKeyword=False, method="GET", ignoreTls=False, maxredirects=10,
+                    accepted_statuscodes=["200-299"], dns_resolve_server="1.1.1.1", dns_resolve_type="A",
+                    jsonPathOperator="==")
+
+    def test_credential_rotation_is_detected_and_never_returned(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"mqtt_password": "rotated"})
+        client.get_monitor_by_name.return_value = dict(self.EXISTING, mqttPassword="old")
+        client.get_monitor.return_value = dict(self.EXISTING, mqttPassword="rotated")
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        assert client.edit_monitor.call_args.kwargs["mqttPassword"] == "rotated"
+        assert "mqttPassword" not in result["monitor"] and "mqttPassword" not in result["diff"]["after"]
+
+        module, client, result = _make_module_and_client({"mqtt_password": "rotated"})
+        client.get_monitor_by_name.return_value = dict(self.EXISTING, mqttPassword="rotated")
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is False
+
+    def test_inactive_create_pauses_before_reading_back(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"active": False})
+        client.get_monitor_by_name.return_value = None
+        client.add_monitor.return_value = {"monitorID": 7}
+        client.get_monitor.return_value = dict(self.EXISTING, active=False)
+        uptime_kuma_monitor._run(module, client)
+        calls = [c[0] for c in client.mock_calls]
+        assert calls.index("pause_monitor") < calls.index("get_monitor")
+        assert result["monitor"]["active"] is False
