@@ -1,0 +1,35 @@
+bugfixes:
+  - >-
+    uptime_kuma role - passes every module option through for maintenance windows, status pages and
+    settings; eight options each were silently dropped, so scheduled maintenance strategies could
+    not be expressed through the role although the role README said they could.
+minor_changes:
+  - >-
+    uptime_kuma_monitor - the options a new monitor of a given type cannot be created without
+    (``url`` for http/keyword/json-query/real-browser, ``hostname``/``port`` for port, ``hostname``
+    for ping/dns/tailscale-ping, ...) are validated before the create request; updates still merge
+    into the server's copy.
+  - >-
+    uptime_kuma_monitor - accepts the monitor types Uptime Kuma 2.x has added (manual, ntp,
+    oracledb, sip-options, websocket-upgrade).
+  - >-
+    the eight resource modules - require ``api_password`` or ``api_token`` at argument-spec level,
+    and reject ``api_token`` together with ``api_password``; ``api_username`` may accompany a token
+    and is ignored.
+  - >-
+    all modules - document ``requirements`` and check/diff mode support in ``attributes``; the
+    documented ansible-core floor is 2.16, matching ``meta/runtime.yml`` and CI.
+breaking_changes:
+  - >-
+    Python 3.9 is no longer supported on the host the modules run on; the floor is 3.10 (the CI
+    matrix).
+  - >-
+    uptime_kuma_notification - the returned ``notification`` carries only ``id``, ``name``,
+    ``type``, ``isDefault`` and ``active``; provider configuration keys (webhook URLs, tokens, ...)
+    are no longer part of the result or diff.
+  - >-
+    uptime_kuma_monitor - the returned ``monitor`` and diff omit every field Uptime Kuma classifies
+    as sensitive (``headers``, ``body``, ``basic_auth_pass``, ``bearer_token``, ``tlsKey``,
+    ``pushToken``, ...).
+  - >-
+    uptime_kuma_settings - the returned ``settings`` and diff omit ``steamAPIKey``.
