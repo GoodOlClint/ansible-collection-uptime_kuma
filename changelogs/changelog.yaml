@@ -1,0 +1,80 @@
+ancestor: null
+releases:
+  0.1.0:
+    changes:
+      release_summary: Initial release of the goodolclint.uptime_kuma collection.
+    modules:
+      - description: Manage Uptime Kuma API keys.
+        name: uptime_kuma_api_key
+        namespace: ''
+      - description: Manage Uptime Kuma maintenance windows.
+        name: uptime_kuma_maintenance
+        namespace: ''
+      - description: Manage Uptime Kuma monitors.
+        name: uptime_kuma_monitor
+        namespace: ''
+      - description: Manage tags on Uptime Kuma monitors.
+        name: uptime_kuma_monitor_tag
+        namespace: ''
+      - description: Manage Uptime Kuma notification providers.
+        name: uptime_kuma_notification
+        namespace: ''
+      - description: Query and update Uptime Kuma instance settings.
+        name: uptime_kuma_settings
+        namespace: ''
+      - description: Manage Uptime Kuma public status pages.
+        name: uptime_kuma_status_page
+        namespace: ''
+      - description: Manage Uptime Kuma tags.
+        name: uptime_kuma_tag
+        namespace: ''
+    objects:
+      role:
+        - description: Declaratively manage all Uptime Kuma resources via variable lists.
+          name: uptime_kuma
+          namespace: null
+    release_date: '2026-04-13'
+  0.2.0:
+    changes:
+      breaking_changes:
+        - Requires ``python-socketio[client]`` instead of ``uptime-kuma-api`` on the control node.
+        - Uptime Kuma 1.x is no longer supported.
+        - Default ``api_timeout`` raised from 10 to 30 seconds.
+      bugfixes:
+        - >-
+          uptime_kuma_maintenance - ``cron`` and ``duration_minutes`` are only compared for
+          ``strategy=cron``; other strategies no longer report a change on every run.
+        - uptime_kuma_status_page - lookups by slug work after creation (Uptime Kuma 2.x pushes the page list only at login).
+      minor_changes:
+        - >-
+          uptime_kuma_monitor - new options ``timeout``, ``resend_interval``, ``json_path``,
+          ``json_path_operator``, ``expected_value``, ``invert_keyword``, ``parent`` (group by name)
+          and ``notification_names``.
+        - uptime_kuma_monitor - notification linkage compares as a set, so ``notification_ids`` no longer reports a change on every run.
+        - >-
+          uptime_kuma role - passes the full monitor option set; new
+          ``uptime_kuma_monitor_defaults``, ``uptime_kuma_monitor_tags`` and
+          ``uptime_kuma_bootstrap_admin`` variables; logs in once and reuses the token (password
+          logins are rate-limited to 20/min by Uptime Kuma).
+      release_summary: >-
+        Targets Uptime Kuma 2.x. The ``uptime-kuma-api`` wrapper is replaced by an in-repo client on
+        ``python-socketio`` (ADR 0001); integration tests run against ``louislam/uptime-kuma:2`` in
+        CI.
+    modules:
+      - description: Obtain a session token for reuse across tasks.
+        name: uptime_kuma_login
+        namespace: ''
+      - description: Create the initial admin account on a fresh instance.
+        name: uptime_kuma_setup
+        namespace: ''
+    release_date: '2026-08-23'
+  0.2.1:
+    changes:
+      bugfixes:
+        - >-
+          uptime_kuma_monitor - ``dns_resolve_server``, ``dns_resolve_type`` and
+          ``json_path_operator`` no longer carry module defaults; they were sent (and compared) for
+          every monitor type, so any monitor created in the UI or by another tool reported a change
+          on every run. Creation still falls back to Uptime Kuma's own defaults.
+      release_summary: Idempotency fix for monitors managed by the role.
+    release_date: '2026-08-24'

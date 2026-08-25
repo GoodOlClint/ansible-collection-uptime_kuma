@@ -8,3 +8,4 @@ keep_fragments: false
 sanitize_changelog: true
 tag_release: false
 use_semantic_versioning: true
+use_fqcn: true
