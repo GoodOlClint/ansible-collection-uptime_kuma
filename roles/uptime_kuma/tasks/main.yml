@@ -80,6 +80,7 @@
     json_path_operator: "{{ mon.json_path_operator | default(omit) }}"
     expected_value: "{{ mon.expected_value | default(omit) }}"
     ignore_tls: "{{ mon.ignore_tls | default(omit) }}"
+    expiry_notification: "{{ mon.expiry_notification | default(omit) }}"
     max_redirects: "{{ mon.max_redirects | default(omit) }}"
     accepted_statuscodes: "{{ mon.accepted_statuscodes | default(omit) }}"
     method: "{{ mon.method | default(omit) }}"

@@ -72,6 +72,7 @@
         monitor_type: http
         url: https://example.com
         interval: 300
+        expiry_notification: true
         state: present
       register: update_result
 
@@ -83,15 +84,30 @@
         monitor_type: http
         url: https://example.com
         interval: 300
+        expiry_notification: true
         state: present
       register: update_idem
+
+    - name: Omit expiry_notification (an unset option leaves the server's value alone)
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor
+        monitor_type: http
+        url: https://example.com
+        interval: 300
+        state: present
+      register: update_omit
 
     - name: Verify the update persisted
       ansible.builtin.assert:
         that:
           - update_result is changed
           - update_result.monitor.interval == 300
+          - update_result.monitor.expiryNotification | bool
           - update_idem is not changed
+          - update_omit is not changed
+          - update_omit.monitor.expiryNotification | bool
 
     - name: Pause the monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor:

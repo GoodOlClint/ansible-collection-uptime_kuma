@@ -120,6 +120,11 @@ options:
       - Ignore TLS/SSL certificate errors.
     type: bool
     default: false
+  expiry_notification:
+    description:
+      - Send a notification when the target's TLS certificate is about to expire (HTTPS targets).
+      - Unset leaves the server's value alone, so a monitor toggled in the UI is not reset.
+    type: bool
   max_redirects:
     description:
       - Maximum number of HTTP redirects to follow.
@@ -302,6 +307,17 @@ EXAMPLES = r"""
     interval: 60
     state: present
 
+- name: Warn before the certificate behind an HTTPS monitor expires
+  goodolclint.uptime_kuma.uptime_kuma_monitor:
+    api_url: http://localhost:3001
+    api_username: admin
+    api_password: secret123
+    name: My Website
+    monitor_type: http
+    url: https://example.com
+    expiry_notification: true
+    state: present
+
 - name: Create a ping monitor
   goodolclint.uptime_kuma.uptime_kuma_monitor:
     api_url: http://localhost:3001
@@ -442,6 +458,8 @@ def build_monitor_params(module):
     # Boolean params
     if params.get("ignore_tls") is not None:
         kwargs["ignoreTls"] = params["ignore_tls"]
+    if params.get("expiry_notification") is not None:
+        kwargs["expiryNotification"] = params["expiry_notification"]
 
     # List params
     if params.get("accepted_statuscodes") is not None:
@@ -622,6 +640,7 @@ def main():
         description=dict(type="str"),
         keyword=dict(type="str", no_log=False),
         ignore_tls=dict(type="bool", default=False),
+        expiry_notification=dict(type="bool"),
         max_redirects=dict(type="int", default=10),
         accepted_statuscodes=dict(type="list", elements="str"),
         method=dict(
