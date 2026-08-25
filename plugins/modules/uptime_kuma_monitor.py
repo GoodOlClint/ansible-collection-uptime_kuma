@@ -13,9 +13,19 @@ DOCUMENTATION = r"""
 module: uptime_kuma_monitor
 short_description: Manage monitors in Uptime Kuma
 version_added: "0.1.0"
+requirements:
+  - python-socketio[client] >= 5.0 on the host the module runs on
+attributes:
+  check_mode:
+    description: Can run in check_mode and return changed status prediction without modifying target.
+    support: full
+  diff_mode:
+    description: Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode.
+    support: full
 description:
   - Create, update, and delete monitors in Uptime Kuma.
-  - Supports all monitor types including HTTP, TCP port, ping, DNS, Docker, and more.
+  - Supports the monitor types listed under O(monitor_type); types whose mandatory settings this module does
+    not expose yet (snmp, rabbitmq, globalping, pm2, system-service, smtp) are not offered.
   - Monitors are identified by O(name) for idempotency.
 options:
   name:
@@ -52,6 +62,11 @@ options:
       - radius
       - redis
       - tailscale-ping
+      - manual
+      - ntp
+      - oracledb
+      - sip-options
+      - websocket-upgrade
   url:
     description:
       - URL to monitor.
@@ -172,34 +187,41 @@ options:
   timeout:
     description:
       - Per-check timeout in seconds.
+    version_added: "0.2.0"
     type: int
     default: 48
   resend_interval:
     description:
       - Resend the down notification every N checks while still down. V(0) disables.
+    version_added: "0.2.0"
     type: int
     default: 0
   json_path:
     description:
       - JSON path (jsonata) evaluated against the response body for C(json-query) monitors.
+    version_added: "0.2.0"
     type: str
   json_path_operator:
     description:
       - Comparison applied between the json_path result and O(expected_value).
+    version_added: "0.2.0"
     type: str
     choices: ["==", "!=", "<", "<=", ">", ">=", "contains", "not_contains", "starts_with", "ends_with"]
   expected_value:
     description:
       - Expected value for C(json-query) monitors.
+    version_added: "0.2.0"
     type: str
   invert_keyword:
     description:
       - Invert the keyword match for C(keyword) and C(grpc-keyword) monitors.
+    version_added: "0.2.0"
     type: bool
     default: false
   parent:
     description:
       - Name of the C(group) monitor this monitor belongs to.
+    version_added: "0.2.0"
     type: str
   notification_ids:
     description:
@@ -211,6 +233,7 @@ options:
     description:
       - List of notification provider names to associate with this monitor.
       - Resolved to IDs at run time; fails if a name does not exist.
+    version_added: "0.2.0"
     type: list
     elements: str
   proxy_id:
@@ -436,6 +459,15 @@ def build_monitor_params(module):
     return kwargs
 
 
+# Options a new monitor of each type cannot be created without; updates merge into the server's copy.
+_REQUIRED_ON_CREATE = {
+    "http": ("url",), "keyword": ("url", "keyword"), "json-query": ("url", "json_path", "expected_value"),
+    "real-browser": ("url",), "port": ("hostname", "port"), "ping": ("hostname",), "dns": ("hostname",),
+    "tailscale-ping": ("hostname",), "docker": ("docker_container", "docker_host"),
+    "mqtt": ("hostname", "port", "mqtt_topic"),
+}
+
+
 def resolve_references(module, client, kwargs):
     """Turn notification_names / parent names into IDs, failing on unknown names."""
     params = module.params
@@ -497,7 +529,11 @@ def _run(module, client):
     kwargs = resolve_references(module, client, build_monitor_params(module))
 
     if existing is None:
-        # Create
+        monitor_type = module.params["monitor_type"]
+        missing = [o for o in _REQUIRED_ON_CREATE.get(monitor_type, ()) if module.params.get(o) is None]
+        if missing:
+            module.fail_json(msg=f"monitor_type={monitor_type} needs {', '.join(missing)} to create a monitor")
+            return
         if module.check_mode:
             module.exit_json(changed=True, diff=_diff(None, kwargs), monitor=_out(kwargs))
             return
@@ -561,6 +597,7 @@ def main():
                 "grpc-keyword", "dns", "docker", "real-browser", "push",
                 "steam", "gamedig", "mqtt", "kafka-producer", "sqlserver",
                 "postgres", "mysql", "mongodb", "radius", "redis", "tailscale-ping",
+                "manual", "ntp", "oracledb", "sip-options", "websocket-upgrade",
             ],
         ),
         url=dict(type="str"),
@@ -614,10 +651,11 @@ def main():
     module = AnsibleModule(
         argument_spec=spec,
         supports_check_mode=True,
+        required_one_of=[("api_password", "api_token")],
         required_if=[
             ("state", "present", ("monitor_type",)),
         ],
-        mutually_exclusive=[("notification_ids", "notification_names")],
+        mutually_exclusive=[("notification_ids", "notification_names"), ("api_token", "api_password")],
     )
 
     run_module(module)

@@ -5,14 +5,15 @@ version: 0.2.1
 readme: README.md
 authors:
   - Clint Branham <goodolclint@gmail.com>
-description: Ansible collection for managing Uptime Kuma monitors via its API
+description: Manage Uptime Kuma 2.x monitors, notifications, tags, status pages, maintenance windows, API keys and settings over its Socket.IO API
 license:
   - GPL-3.0-or-later
-tags: [monitoring, tools]
+tags: [monitoring, tools, uptimekuma]
 
 homepage: https://github.com/goodolclint/ansible-collection-uptime_kuma
 repository: https://github.com/goodolclint/ansible-collection-uptime_kuma
 issues: https://github.com/goodolclint/ansible-collection-uptime_kuma/issues
+documentation: https://github.com/goodolclint/ansible-collection-uptime_kuma#readme
 dependencies: {}
 build_ignore:
   - .ansible
