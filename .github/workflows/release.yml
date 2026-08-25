@@ -5,14 +5,42 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: release-${{ github.ref }}
+
 jobs:
   release:
     name: Publish to Ansible Galaxy
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
+      checks: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Require the tagged commit to be on main with a green CI run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(git rev-parse "${GITHUB_REF_NAME}^{commit}")"
+          relation="$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...${sha}" --jq .status)"
+          if [ "$relation" != "identical" ] && [ "$relation" != "behind" ]; then
+            echo "::error::tagged commit ${sha} is not on main"
+            exit 1
+          fi
+          for _ in $(seq 1 90); do
+            run_id="$(gh run list --workflow ci.yml --commit "$sha" --event push --branch main --json databaseId --jq '.[0].databaseId // empty')"
+            [ -n "$run_id" ] && break
+            sleep 10
+          done
+          if [ -z "${run_id:-}" ]; then
+            echo "::error::no CI run found for ${sha} on main"
+            exit 1
+          fi
+          gh run watch "$run_id" --exit-status
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -20,7 +48,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install ansible-core
-        run: pip install ansible-core
+        run: pip install 'ansible-core>=2.16,<2.22'
 
       - name: Verify tag matches galaxy.yml version
         run: |
@@ -39,10 +67,11 @@ jobs:
         run: ansible-galaxy collection build --force
 
       - name: Publish to Galaxy
-        run: >-
-          ansible-galaxy collection publish
-          goodolclint-uptime_kuma-*.tar.gz
-          --api-key "${{ secrets.GALAXY_API_KEY }}"
+        env:
+          ANSIBLE_GALAXY_SERVER_LIST: release
+          ANSIBLE_GALAXY_SERVER_RELEASE_URL: https://galaxy.ansible.com/api/
+          ANSIBLE_GALAXY_SERVER_RELEASE_TOKEN: ${{ secrets.GALAXY_API_KEY }}
+        run: ansible-galaxy collection publish goodolclint-uptime_kuma-*.tar.gz
 
       - name: Create GitHub release with the tarball
         env:

@@ -16,25 +16,27 @@ on:
   pull_request_review_comment:
     types: [created]
   issues:
-    types: [opened, assigned]
+    types: [opened]
   pull_request_review:
     types: [submitted]
 
 jobs:
   claude:
-    # Body-only matching for issues, deliberately NOT the title. Narrow win,
-    # stated honestly: a `contains()` match cannot tell addressing the bot
-    # from *describing* it, so an issue whose body discusses the workflow
-    # still fires (issue #43 did — its body named the keyword four times).
-    # What this buys is the title-only case: an issue that merely NAMES the
-    # bot in its title no longer spins a run, and a user actually addressing
-    # the bot always writes the mention in the body.
+    # Only repository owners/members/collaborators can invoke the bot: the job
+    # holds contents:write and a token, and anyone can open an issue.
+    # Body-only matching (not the title): a `contains()` match cannot tell
+    # addressing the bot from describing it, but a user addressing the bot
+    # always writes the mention in the body.
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
+      (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)) ||
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
+      )
     runs-on: ubuntu-latest
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
     permissions:
       contents: write
       pull-requests: write
@@ -43,10 +45,20 @@ jobs:
       actions: read
 
     steps:
+      # author_association is membership, not permission: a read-only collaborator still passes the trigger.
+      - name: Require write access for the actor
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          perm="$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${ACTOR}/permission" --jq .permission)"
+          case "$perm" in admin|maintain|write) ;; *) echo "::error::${ACTOR} has '${perm}' access, write required"; exit 1 ;; esac
+
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # Same pattern as claude-code-review.yml: instructions live in
       # .github/claude-prompt.md, materialized from the DEFAULT branch so a
