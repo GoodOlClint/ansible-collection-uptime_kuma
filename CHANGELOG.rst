@@ -4,6 +4,17 @@ goodolclint.uptime_kuma Release Notes
 
 .. contents:: Topics
 
+v0.2.1
+======
+
+Release Summary
+---------------
+Idempotency fix for monitors managed by the role.
+
+Bugfixes
+--------
+- uptime_kuma_monitor - ``dns_resolve_server``, ``dns_resolve_type`` and ``json_path_operator`` no longer carry module defaults; they were sent (and compared) for every monitor type, so any monitor created in the UI or by another tool reported a change on every run. Creation still falls back to Uptime Kuma's own defaults.
+
 v0.2.0
 ======
 

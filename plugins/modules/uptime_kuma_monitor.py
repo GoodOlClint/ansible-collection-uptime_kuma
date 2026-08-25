@@ -130,12 +130,10 @@ options:
     description:
       - DNS server to use for DNS monitor type.
     type: str
-    default: "1.1.1.1"
   dns_resolve_type:
     description:
       - DNS record type to query.
     type: str
-    default: A
     choices: [A, AAAA, CAA, CNAME, MX, NS, PTR, SOA, SRV, TXT]
   mqtt_username:
     description:
@@ -188,7 +186,6 @@ options:
       - Comparison applied between the json_path result and O(expected_value).
     type: str
     choices: ["==", "!=", "<", "<=", ">", ">=", "contains", "not_contains", "starts_with", "ends_with"]
-    default: "=="
   expected_value:
     description:
       - Expected value for C(json-query) monitors.
@@ -569,9 +566,9 @@ def main():
         ),
         body=dict(type="str"),
         headers=dict(type="str"),
-        dns_resolve_server=dict(type="str", default="1.1.1.1"),
+        dns_resolve_server=dict(type="str"),
         dns_resolve_type=dict(
-            type="str", default="A",
+            type="str",
             choices=["A", "AAAA", "CAA", "CNAME", "MX", "NS", "PTR", "SOA", "SRV", "TXT"],
         ),
         mqtt_username=dict(type="str"),
@@ -586,7 +583,7 @@ def main():
         resend_interval=dict(type="int", default=0),
         json_path=dict(type="str"),
         json_path_operator=dict(
-            type="str", default="==",
+            type="str",
             choices=["==", "!=", "<", "<=", ">", ">=", "contains", "not_contains", "starts_with", "ends_with"],
         ),
         expected_value=dict(type="str"),
