@@ -55,6 +55,9 @@ options:
       - Keys and values depend on the chosen O(notification_type).
       - For example, for Discord provide C(discordWebhookUrl).
       - For Slack provide C(slackwebhookURL).
+      - Keys are compared and written individually. A key removed from this dictionary is not removed on
+        the server and its old value stays in effect; set it to an empty value explicitly, or remove and
+        recreate the notification.
       - Treated as no_log. Values whose key looks like a credential (password, token, key, webhook, URL, ...)
         are masked wherever they appear; other values are shown so results stay readable.
       - Provider configuration is never part of RV(notification) or the diff, whether it was set by this task
