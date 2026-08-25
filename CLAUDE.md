@@ -26,31 +26,19 @@ This collection provides Ansible modules for managing Uptime Kuma resources — 
 @~/Source/ansible-collection-standards.md
 
 ## Constraints (repo-specific)
-**IMPORTANT — DECISION REQUIRED**: Before writing any module code, you must evaluate and document in CONTRIBUTING.md under Architecture Decisions which of the following paths to take. This is the FIRST task when opening this repo:
-
-### OPTION A: stdlib Socket.IO implementation
-Implement a minimal Socket.IO 4.x client in `module_utils/socketio_client.py` using only `http.client` and `socket` from the stdlib for the WebSocket upgrade and framing. This is viable but complex — it requires implementing the Engine.IO handshake, WebSocket frame parsing (RFC 6455), and Socket.IO event protocol from scratch.
-
-### OPTION B: uptime-kuma-api pip dependency exception
-Declare `uptime-kuma-api` as a documented pip dependency — an explicit, intentional exception to the stdlib-only rule. Document the exception clearly in README.md Requirements section and CONTRIBUTING.md Architecture Decisions. The exception must be justified: "No REST API exists; Socket.IO is the only interface; a stdlib implementation of Socket.IO 4.x is disproportionately complex for the value delivered."
-
-### OPTION C: defer collection
-If neither option is acceptable, mark the collection as DEFERRED in README.md with an explanation, and do not write module code until Uptime Kuma ships a REST API (tracked at https://github.com/louislam/uptime-kuma/issues/1109).
-
-**Evaluate all three options, recommend one with written rationale, then implement. Do not ask for confirmation — make the decision and document it.**
+The Socket.IO client decision (stdlib client vs. `uptime-kuma-api` vs. defer) is settled by [ADR 0001](docs/decisions/0001-in-repo-python-socketio-client-replaces-the-uptime-kuma-api-wrapper-uptime-kuma-2-x-only.md): an in-repo client on `python-socketio[client]`, the one documented exception to the shared stdlib-only rule. Do not re-open it.
 
 ## Build Phase Details (repo-specific)
 
-### Phase 0 — Architecture Decision (MUST BE FIRST)
-Evaluate Options A, B, and C above. Write the decision and full rationale in CONTRIBUTING.md under Architecture Decisions. Update README.md Requirements section if Option B is chosen.
-→ GIT COMMIT: "docs: document Socket.IO architecture decision"
+### Phase 0 — Architecture Decision (done)
+Settled by ADR 0001 (in-repo `python-socketio` client, 2.x only) and recorded in CONTRIBUTING.md and README.md. Nothing to do here.
 
 ### Phase 1 — API Research
 Study the uptime-kuma-api Python wrapper source to catalogue all Socket.IO events and their payloads. Produce a summary table:
   resource | events (emit/listen) | payload schema | notes
 
 ### Phase 2 — Base API Client
-Build `plugins/module_utils/uptime_kuma_api.py` (or `socketio_client.py` if Option A) with:
+`plugins/module_utils/uptime_kuma_api.py` provides:
 - Client class appropriate to the chosen architecture
 - Connection management (WebSocket lifecycle)
 - Event emit/receive with timeout handling
@@ -67,13 +55,14 @@ Build `plugins/module_utils/uptime_kuma_api.py` (or `socketio_client.py` if Opti
 - `uptime_kuma_maintenance` — manage maintenance windows
 - `uptime_kuma_api_key` — manage API keys
 - `uptime_kuma_settings` — query/update instance settings
+- `uptime_kuma_setup` — create the initial admin account
+- `uptime_kuma_login` — obtain a session token for reuse
 
 ## Special Considerations
-- **No REST API**: This is the only collection in the goodolclint namespace that does not have a REST API. The architecture decision (Option A/B/C) is the most critical design choice and must be made and documented before any code is written.
-- **Socket.IO complexity**: If Option A is chosen, the stdlib Socket.IO client will be the most complex piece of module_utils code in any goodolclint collection. It must handle: HTTP upgrade to WebSocket, WebSocket frame encoding/decoding (RFC 6455), Engine.IO packet protocol, Socket.IO event protocol, and reconnection logic.
-- **If Option C (defer)**: Mark all resource targets as "DEFERRED" in this file and README.md. Do not write module code. The scaffold remains for future use.
+- **No REST API**: This is the only collection in the goodolclint namespace without a REST API; the protocol layer is the in-repo Socket.IO client (ADR 0001). Event names and payload shapes are pinned by the integration suite against `louislam/uptime-kuma:2`; verify a server behaviour against that image (or the upstream source) before relying on it.
+- **Credentials**: nothing the modules manage is write-only on 2.x (ADR 0003); credentials are compared normally and never returned.
 
 ## Quality Gates (repo-specific)
 In addition to the shared Quality Gates:
 - [ ] Architecture decision documented in CONTRIBUTING.md
-- [ ] Dependency exception documented if Option B chosen (the shared "Stdlib-only confirmed" gate applies as written only under Option A)
+- [ ] `python-socketio[client]` remains the only pip dependency and stays documented as the exception to the shared "Stdlib-only confirmed" gate

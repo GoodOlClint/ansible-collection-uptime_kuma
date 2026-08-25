@@ -4,9 +4,9 @@ Ansible collection for managing Uptime Kuma 2.x — monitors, notifications, tag
 
 ## Requirements
 
-- ansible-core >= 2.14
-- Python >= 3.9
-- `python-socketio[client] >= 5.0` (pip install required on the control node)
+- ansible-core >= 2.16
+- Python >= 3.10
+- `python-socketio[client] >= 5.0` on the host the modules run on (the control node unless you `delegate_to` elsewhere)
 - Uptime Kuma **2.x** (tested against `louislam/uptime-kuma:2`; 1.x is not supported)
 
 ### Why a pip dependency?
