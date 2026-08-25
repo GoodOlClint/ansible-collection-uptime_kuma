@@ -41,11 +41,35 @@
         that:
           - idem_result is not changed
 
-  always:
-    - name: Restore default keep data period
+    - name: Set only the Steam API key
       goodolclint.uptime_kuma.uptime_kuma_settings:
         api_url: "{{ uptime_kuma_api_url }}"
         api_token: "{{ uptime_kuma_api_token }}"
-        keep_data_period_days: 180
+        steam_api_key: integration-test-steam-key
+        state: present
+      register: steam_result
+
+    - name: Set the same Steam API key again
+      goodolclint.uptime_kuma.uptime_kuma_settings:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        steam_api_key: integration-test-steam-key
+        state: present
+      register: steam_idem
+
+    - name: Verify a Steam-key-only change is written once and never returned
+      ansible.builtin.assert:
+        that:
+          - steam_result is changed
+          - steam_idem is not changed
+          - "'steamAPIKey' not in steam_idem.settings"
+
+  always:
+    - name: Restore the queried settings
+      goodolclint.uptime_kuma.uptime_kuma_settings:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        keep_data_period_days: "{{ query_result.settings.keepDataPeriodDays | default(180) }}"
+        steam_api_key: ""
         state: present
       failed_when: false

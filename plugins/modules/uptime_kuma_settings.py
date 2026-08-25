@@ -71,7 +71,7 @@ options:
     type: bool
   password:
     description:
-      - Current password, required when changing O(disable_auth).
+      - Current password, required when setting O(disable_auth=true) on an instance where authentication is enabled.
     type: str
   state:
     description:
@@ -172,7 +172,6 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
     uptime_kuma_argument_spec,
 )
 
-WRITE_ONLY_FIELDS = {"steamAPIKey", "password"}
 SENSITIVE_FIELDS = {"steamAPIKey"}
 
 
@@ -230,8 +229,12 @@ def _run(module, client):
         module.exit_json(changed=False, settings=_out(current))
         return
 
-    if not needs_update(current, desired, exclude_keys=WRITE_ONLY_FIELDS):
+    if not needs_update(current, desired):
         module.exit_json(changed=False, settings=_out(current))
+        return
+
+    if desired.get("disableAuth") and not current.get("disableAuth") and not module.params.get("password"):
+        module.fail_json(msg="Disabling authentication requires the current 'password'")
         return
 
     if module.check_mode:
