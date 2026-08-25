@@ -142,7 +142,6 @@ EXAMPLES = r"""
     slug: my-services
     title: My Services Status
     description: Current status of all services
-    published: true
     state: present
 
 - name: Create a status page with monitor groups
@@ -177,7 +176,6 @@ status_page:
   sample:
     slug: my-services
     title: My Services Status
-    published: true
     theme: auto
 """
 

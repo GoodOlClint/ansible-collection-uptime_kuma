@@ -38,6 +38,9 @@ options:
     description:
       - Type of the monitor.
       - Required when O(state=present).
+      - C(oracledb), C(gamedig), C(radius), C(kafka-producer) and C(grpc-keyword) also need options this module
+        does not expose yet (database credentials, game, RADIUS credentials, brokers/topic, gRPC URL); a monitor
+        of those types created here stays down until it is completed in the UI.
     type: str
     choices:
       - group

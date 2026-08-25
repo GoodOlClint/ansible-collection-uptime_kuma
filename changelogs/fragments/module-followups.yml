@@ -5,7 +5,7 @@ bugfixes:
     target option (``hostname``/``port``, ``url`` or ``database_connection_string``) now fails up front instead
     of creating a permanently-down monitor.
   - >-
-    client - the retried requests (``login``, ``loginByToken``, ``needSetup``, ``setup``) wait at least 10 s per
+    client - the retried requests (``login``, ``loginByToken``, ``needSetup``) wait at least 10 s per
     attempt even when ``api_timeout`` is lower.
   - >-
     client - a public status page body that is not a JSON object is reported as a read error instead of an
