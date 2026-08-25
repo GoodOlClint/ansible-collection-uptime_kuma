@@ -1,5 +1,0 @@
-bugfixes:
-  - >-
-    uptime_kuma_monitor - creating a monitor with ``active=false`` now sends ``active`` in the create payload so
-    the server never starts it; previously the monitor was created running and paused a round trip later, so its
-    target was probed once anyway.
