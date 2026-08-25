@@ -49,7 +49,8 @@ options:
       - Treated as no_log. Values whose key looks like a credential (password, token, key, webhook, URL, ...)
         are masked wherever they appear; other values are shown so results stay readable.
       - Provider configuration is never part of RV(notification) or the diff, whether it was set by this task
-        or read back from the server.
+        or read back from the server. It is compared, so a changed value (including a rotated credential)
+        is applied.
     type: dict
     default: {}
   state:
@@ -146,23 +147,6 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
     uptime_kuma_argument_spec,
 )
 
-# Notification provider config fields are largely write-only (credentials)
-WRITE_ONLY_FIELDS = {
-    "alertaApiKey", "secretAccessKey", "clicksendsmsPassword",
-    "secretKey", "freemobilePass", "goAlertToken",
-    "gotifyapplicationToken", "longLivedAccessToken", "kookBotToken",
-    "lineChannelAccessToken", "lineNotifyAccessToken", "accessToken",
-    "ntfypassword", "ntfyaccesstoken", "octopushAPIKey",
-    "opsgenieApiKey", "pagerdutyIntegrationKey", "promosmsPassword",
-    "pushbulletAccessToken", "pushdeerKey", "pushoverapptoken",
-    "pushoveruserkey", "pushyAPIKey", "pushyToken",
-    "serverChanSendKey", "serwersmsPassword", "smscPassword",
-    "smseagleToken", "smsmanagerApiKey", "smtpPassword",
-    "telegramBotToken", "twilioAuthToken", "twilioApiKey",
-    "pushAPIKey", "weComBotKey",
-}
-
-
 # Provider config keys that look like credentials stay masked; the rest are unmasked
 # after argument parsing so short values (ports, hosts) do not shred the result.
 _SECRET_KEY = re.compile(r"pass|secret|token|key|webhook|url|auth|nsec|sender|credential|sid", re.IGNORECASE)
@@ -248,8 +232,8 @@ def _run(module, client):
         return
 
     # Check for updates
-    desired_check = {"name": name, "type": notification_type, "isDefault": module.params["is_default"]}
-    if not needs_update(existing, desired_check, exclude_keys=WRITE_ONLY_FIELDS):
+    desired_check = {k: v for k, v in kwargs.items() if k != "applyExisting"}
+    if not needs_update(existing, desired_check):
         module.exit_json(changed=False, notification=_out(existing))
         return
 

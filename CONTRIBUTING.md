@@ -68,7 +68,7 @@ and `packaging`. These are pulled in transitively.
 
 ### ADR-002: Write-Only Field Handling
 
-**Status:** Accepted
+**Status:** Superseded by [ADR 0003](docs/decisions/0003-credentials-are-compared-normally-and-never-returned-nothing-on-uptime-kuma-2-x-is-write-only.md) (2026-08-25)
 **Date:** 2026-03-13
 **Context:** Some API fields (e.g., passwords, notification webhook URLs in certain
 providers) are write-only — they can be set but are not returned by the API in

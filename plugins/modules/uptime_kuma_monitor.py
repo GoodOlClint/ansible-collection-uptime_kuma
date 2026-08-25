@@ -347,14 +347,10 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
     uptime_kuma_argument_spec,
 )
 
-# Fields that are write-only (cannot be read back for comparison)
-WRITE_ONLY_FIELDS = {
-    "basic_auth_pass", "oauth_client_secret", "radiusPassword",
-    "radiusSecret", "mqttPassword", "databaseConnectionString",
-}
-
 # Uptime Kuma's Monitor.toJSON(includeSensitiveData) block, plus gamedigToken; never returned or diffed.
-SENSITIVE_FIELDS = WRITE_ONLY_FIELDS | {
+SENSITIVE_FIELDS = {
+    "basic_auth_pass", "oauth_client_secret", "radiusPassword", "radiusSecret", "mqttPassword",
+    "databaseConnectionString",
     "headers", "body", "grpcBody", "grpcMetadata", "basic_auth_user", "oauth_client_id",
     "oauth_token_url", "oauth_scopes", "oauth_audience", "oauth_auth_method", "bearer_token", "pushToken",
     "radiusUsername", "mqttUsername", "mqttWebsocketPath", "authWorkstation", "authDomain",
@@ -423,7 +419,6 @@ def build_monitor_params(module):
     if params.get("max_redirects") is not None:
         kwargs["maxredirects"] = params["max_redirects"]
 
-    # Credential params (write-only)
     if params.get("mqtt_username") is not None:
         kwargs["mqttUsername"] = params["mqtt_username"]
     if params.get("mqtt_password") is not None:
@@ -508,10 +503,9 @@ def _run(module, client):
             return
         result = client.add_monitor(**kwargs)
         monitor_id = result.get("monitorID")
-        new_monitor = client.get_monitor(monitor_id) if monitor_id else result
-        # Handle active/paused state
         if not active and monitor_id:
             client.pause_monitor(monitor_id)
+        new_monitor = client.get_monitor(monitor_id) if monitor_id else result
         module.exit_json(
             changed=True,
             diff=_diff(None, new_monitor),
@@ -524,8 +518,7 @@ def _run(module, client):
     changed = False
     diff_data = {}
 
-    # Check if monitor params need updating
-    if needs_update(existing, kwargs, exclude_keys=WRITE_ONLY_FIELDS):
+    if needs_update(existing, kwargs):
         if module.check_mode:
             after = dict(existing)
             after.update(kwargs)

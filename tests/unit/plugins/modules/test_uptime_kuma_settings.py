@@ -47,3 +47,33 @@ def test_update_omits_steam_api_key_from_result_and_diff():
     assert "steamAPIKey" not in result["settings"]
     assert "steamAPIKey" not in result["diff"]["before"]
     assert "steamAPIKey" not in result["diff"]["after"]
+
+
+def test_steam_api_key_alone_is_written():
+    module, result = _module(steam_api_key="NEW")
+    client = MagicMock()
+    client.get_settings.side_effect = [SERVER, dict(SERVER, steamAPIKey="NEW")]
+    uptime_kuma_settings._run(module, client)
+    assert result["changed"] is True
+    assert client.set_settings.call_args.kwargs["steamAPIKey"] == "NEW"
+
+
+def test_disable_auth_change_requires_password():
+    module, result = _module(disable_auth=True)
+    client = MagicMock()
+    client.get_settings.return_value = dict(SERVER, disableAuth=False)
+    uptime_kuma_settings._run(module, client)
+    assert result.get("failed") is True
+    client.set_settings.assert_not_called()
+
+    module, result = _module(disable_auth=False)
+    client.get_settings.side_effect = [dict(SERVER, disableAuth=True), dict(SERVER, disableAuth=False)]
+    uptime_kuma_settings._run(module, client)
+    assert result["changed"] is True and client.set_settings.called
+    client.get_settings.side_effect = None
+
+    module, result = _module(disable_auth=True, password="pw")
+    client.get_settings.side_effect = [dict(SERVER, disableAuth=False), dict(SERVER, disableAuth=True)]
+    uptime_kuma_settings._run(module, client)
+    assert result["changed"] is True
+    assert client.set_settings.call_args.kwargs["password"] == "pw"

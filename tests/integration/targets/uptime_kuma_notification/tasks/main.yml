@@ -37,6 +37,93 @@
         that:
           - idem_result is not changed
 
+    - name: Change a config value
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-notification
+        notification_type: webhook
+        notification_config:
+          webhookURL: https://example.com/webhook-v2
+          webhookContentType: "application/json"
+        state: present
+      register: drift_result
+
+    - name: Re-run with the changed value
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-notification
+        notification_type: webhook
+        notification_config:
+          webhookURL: https://example.com/webhook-v2
+          webhookContentType: "application/json"
+        state: present
+      register: drift_idem
+
+    - name: Verify config drift was applied once
+      ansible.builtin.assert:
+        that:
+          - drift_result is changed
+          - drift_idem is not changed
+
+    - name: Create an SMTP notification with a password
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-smtp
+        notification_type: smtp
+        notification_config:
+          smtpHost: mail.example.com
+          smtpPort: 587
+          smtpSecure: false
+          smtpUsername: bot
+          smtpPassword: first
+          smtpFrom: bot@example.com
+          smtpTo: ops@example.com
+        state: present
+
+    - name: Rotate the password
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-smtp
+        notification_type: smtp
+        notification_config:
+          smtpHost: mail.example.com
+          smtpPort: 587
+          smtpSecure: false
+          smtpUsername: bot
+          smtpPassword: second
+          smtpFrom: bot@example.com
+          smtpTo: ops@example.com
+        state: present
+      register: rotate_noop
+
+    - name: Rotate the password again (no-op)
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-smtp
+        notification_type: smtp
+        notification_config:
+          smtpHost: mail.example.com
+          smtpPort: 587
+          smtpSecure: false
+          smtpUsername: bot
+          smtpPassword: second
+          smtpFrom: bot@example.com
+          smtpTo: ops@example.com
+        state: present
+      register: rotate_idem
+
+    - name: Verify a credential rotation is applied exactly once and never echoed
+      ansible.builtin.assert:
+        that:
+          - rotate_noop is changed
+          - rotate_idem is not changed
+          - "'smtpPassword' not in rotate_noop.notification"
+
     - name: Delete notification
       goodolclint.uptime_kuma.uptime_kuma_notification:
         api_url: "{{ uptime_kuma_api_url }}"
@@ -63,3 +150,15 @@
       ansible.builtin.assert:
         that:
           - delete_idem is not changed
+
+  always:
+    - name: Clean up
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: "{{ notification_name }}"
+        state: absent
+      loop: [integration-test-notification, integration-test-smtp]
+      loop_control:
+        loop_var: notification_name
+      failed_when: false

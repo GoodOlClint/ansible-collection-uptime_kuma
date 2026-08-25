@@ -13,6 +13,7 @@ This collection provides Ansible modules for managing Uptime Kuma resources — 
 
 ## Architecture
 - Decisions live in `docs/decisions/`. Binding: [ADR 0001](docs/decisions/0001-in-repo-python-socketio-client-replaces-the-uptime-kuma-api-wrapper-uptime-kuma-2-x-only.md) — in-repo `python-socketio` client, Uptime Kuma 2.x only. `plugins/module_utils/uptime_kuma_api.py` is the single protocol layer; modules never emit Socket.IO events directly.
+- Write-only credentials: [ADR 0003](docs/decisions/0003-credentials-are-compared-normally-and-never-returned-nothing-on-uptime-kuma-2-x-is-write-only.md) — nothing on 2.x is write-only: credentials are compared like any other field and never returned.
 - PR review gating: [ADR 0002](docs/decisions/0002-pr-review-gating-tamper-proof-claude-review-as-a-required-check-codeowners-for-policy-paths.md) — instructions in `.github/review-prompt.md`, materialized from main; `claude-review` is a required check; CODEOWNERS mirrors the prompt's defer list.
 - Dev instance: `tests/dev/docker-compose.yml` (`louislam/uptime-kuma:2`). Integration targets run against it locally and against the same image in CI.
 

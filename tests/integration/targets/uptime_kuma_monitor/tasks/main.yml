@@ -55,6 +55,49 @@
         that:
           - update_result is changed
 
+    # ── CREDENTIALS ───────────────────────────────────────────────────
+    - name: Create a database monitor with a connection string
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-db-monitor
+        monitor_type: postgres
+        database_connection_string: postgres://bot:first@db.example.com:5432/app
+        database_query: SELECT 1
+        state: present
+      register: db_create
+
+    - name: Rotate the connection string
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-db-monitor
+        monitor_type: postgres
+        database_connection_string: postgres://bot:second@db.example.com:5432/app
+        database_query: SELECT 1
+        state: present
+      register: db_rotate
+
+    - name: Rotate again (no-op)
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-db-monitor
+        monitor_type: postgres
+        database_connection_string: postgres://bot:second@db.example.com:5432/app
+        database_query: SELECT 1
+        state: present
+      register: db_idem
+
+    - name: Verify a credential rotation is applied exactly once and never echoed
+      ansible.builtin.assert:
+        that:
+          - db_create is changed
+          - db_rotate is changed
+          - db_idem is not changed
+          - "'databaseConnectionString' not in db_rotate.monitor"
+          - "'databaseConnectionString' not in db_rotate.diff.after"
+
     # ── CHECK MODE ────────────────────────────────────────────────────
     - name: Delete monitor in check mode
       goodolclint.uptime_kuma.uptime_kuma_monitor:
@@ -96,3 +139,15 @@
       ansible.builtin.assert:
         that:
           - delete_idem is not changed
+
+  always:
+    - name: Clean up
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: "{{ monitor_name }}"
+        state: absent
+      loop: [integration-test-monitor, integration-test-db-monitor]
+      loop_control:
+        loop_var: monitor_name
+      failed_when: false

@@ -40,7 +40,8 @@ options:
     default: auto
   published:
     description:
-      - Whether the status page is publicly visible.
+      - Has no effect. Uptime Kuma 2.x does not change this after creation, so it is neither sent nor compared;
+        kept so existing playbooks keep validating.
     type: bool
     default: true
   show_tags:
@@ -69,6 +70,7 @@ options:
     type: str
   google_analytics_id:
     description:
+      - Stored as Uptime Kuma 2.x C(analyticsId) with C(analyticsType=google).
       - Google Analytics tracking ID.
     type: str
   domain_name_list:
@@ -178,9 +180,20 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
 )
 
 
-def _get_existing_by_slug(client, slug):
-    """Find a status page by slug, return None if not found."""
-    return client.get_status_page_config(slug)
+def _get_existing_by_slug(client, slug, with_groups=False):
+    """Return the page config for *slug* (plus public groups if *with_groups*), or None if no such page."""
+    config = client.get_status_page_config(slug)
+    if config is None or not with_groups:
+        return config
+    return client.get_status_page(slug)
+
+
+def _groups(groups):
+    """Public groups reduced to what the module manages: names and monitor ids, both in display order."""
+    return [(g.get("name"), [m.get("id") for m in g.get("monitorList") or []]) for g in groups or []]
+
+
+_DIFF_EXCLUDE = {"incident", "maintenanceList"}
 
 
 def run_module(module):
@@ -199,7 +212,7 @@ def _run(module, client):
     state = module.params["state"]
     slug = module.params["slug"]
 
-    existing = _get_existing_by_slug(client, slug)
+    existing = _get_existing_by_slug(client, slug, with_groups=module.params.get("public_group_list") is not None)
 
     if state == "absent":
         if existing is None:
@@ -208,12 +221,12 @@ def _run(module, client):
         if module.check_mode:
             module.exit_json(
                 changed=True,
-                diff=compute_diff(existing, None),
+                diff=compute_diff(existing, None, exclude_keys=_DIFF_EXCLUDE),
                 status_page=normalize_result(existing),
             )
             return
         client.delete_status_page(slug)
-        module.exit_json(changed=True, diff=compute_diff(existing, None), status_page={})
+        module.exit_json(changed=True, diff=compute_diff(existing, None, exclude_keys=_DIFF_EXCLUDE), status_page={})
         return
 
     # state == present
@@ -222,10 +235,12 @@ def _run(module, client):
         module.fail_json(msg="Parameter 'title' is required when state=present")
 
     save_kwargs = _build_save_kwargs(module)
+    desired_groups = save_kwargs.get("publicGroupList")
 
     if existing is None:
         if module.check_mode:
-            module.exit_json(changed=True, diff=compute_diff(None, save_kwargs), status_page=save_kwargs)
+            predicted = {"slug": slug, "title": title, **save_kwargs}
+            module.exit_json(changed=True, diff=compute_diff(None, predicted), status_page=normalize_result(predicted))
             return
         client.add_status_page(slug, title)
         # After creation, get the page to find its ID, then save full config
@@ -234,31 +249,29 @@ def _run(module, client):
             save_kwargs["id"] = created["id"]
             save_kwargs["title"] = title
             client.save_status_page(slug, **save_kwargs)
-        result = _get_existing_by_slug(client, slug) or created
+        result = _get_existing_by_slug(client, slug, with_groups=desired_groups is not None) or created
         module.exit_json(
             changed=True,
-            diff=compute_diff(None, result),
+            diff=compute_diff(None, result, exclude_keys=_DIFF_EXCLUDE),
             status_page=normalize_result(result),
         )
         return
 
-    # Update if needed - check basic fields
-    desired_check = {"title": title}
-    for key in ("theme", "published", "showTags", "showPoweredBy", "customCSS"):
-        if key in save_kwargs:
-            desired_check[key] = save_kwargs[key]
-
-    exclude = {"id", "slug", "incident", "maintenanceList", "publicGroupList", "icon"}
-    if not needs_update(existing, desired_check, exclude_keys=exclude):
+    desired_check = {"title": title, **save_kwargs}
+    desired_check.pop("publicGroupList", None)
+    groups_changed = desired_groups is not None and _groups(existing.get("publicGroupList")) != _groups(desired_groups)
+    if not needs_update(existing, desired_check) and not groups_changed:
         module.exit_json(changed=False, status_page=normalize_result(existing))
         return
 
     if module.check_mode:
         after = dict(existing)
         after.update(desired_check)
+        if desired_groups is not None:
+            after["publicGroupList"] = desired_groups
         module.exit_json(
             changed=True,
-            diff=compute_diff(existing, after),
+            diff=compute_diff(existing, after, exclude_keys=_DIFF_EXCLUDE),
             status_page=normalize_result(after),
         )
         return
@@ -266,10 +279,10 @@ def _run(module, client):
     save_kwargs["id"] = existing["id"]
     save_kwargs["title"] = title
     client.save_status_page(slug, **save_kwargs)
-    updated = _get_existing_by_slug(client, slug)
+    updated = _get_existing_by_slug(client, slug, with_groups=desired_groups is not None)
     module.exit_json(
         changed=True,
-        diff=compute_diff(existing, updated),
+        diff=compute_diff(existing, updated, exclude_keys=_DIFF_EXCLUDE),
         status_page=normalize_result(updated),
     )
 
@@ -282,13 +295,12 @@ def _build_save_kwargs(module):
     mappings = {
         "description": "description",
         "theme": "theme",
-        "published": "published",
         "show_tags": "showTags",
         "show_powered_by": "showPoweredBy",
         "show_certificate_expiry": "showCertificateExpiry",
         "custom_css": "customCSS",
         "footer_text": "footerText",
-        "google_analytics_id": "googleAnalyticsId",
+        "google_analytics_id": "analyticsId",
     }
 
     for param_name, api_name in mappings.items():
@@ -296,9 +308,14 @@ def _build_save_kwargs(module):
         if value is not None:
             kwargs[api_name] = value
 
+    if params.get("google_analytics_id") is not None:
+        kwargs["analyticsType"] = "google"
     if params.get("domain_name_list") is not None:
         kwargs["domainNameList"] = params["domain_name_list"]
     if params.get("public_group_list") is not None:
+        for group in params["public_group_list"]:
+            if not all(isinstance(m, dict) and "id" in m for m in group.get("monitorList") or []):
+                module.fail_json(msg="public_group_list monitorList entries must be dicts with an 'id' key")
         kwargs["publicGroupList"] = params["public_group_list"]
 
     return kwargs
