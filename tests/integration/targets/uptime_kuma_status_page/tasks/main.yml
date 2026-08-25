@@ -8,7 +8,6 @@
         slug: integration-test-page
         title: Integration Test Status
         description: Test status page
-        published: true
         state: present
       register: create_result
 
@@ -24,7 +23,6 @@
         slug: integration-test-page
         title: Integration Test Status
         description: Test status page
-        published: true
         state: present
       register: idem_result
 
@@ -40,7 +38,6 @@
         slug: integration-test-page
         title: Integration Test Status
         description: Changed description
-        published: true
         state: present
       register: drift_result
 
@@ -51,7 +48,6 @@
         slug: integration-test-page
         title: Integration Test Status
         description: Changed description
-        published: true
         state: present
       register: drift_idem
 
