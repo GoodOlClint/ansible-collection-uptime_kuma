@@ -21,6 +21,7 @@ pip install 'python-socketio[client]>=5.0'
 
 ```bash
 tests/dev/up.sh          # starts louislam/uptime-kuma:2 on :3001 and creates admin / Ansible-Dev-Pass-1
+tests/dev/up.sh fresh    # recreates the volume and leaves setup to the suite; then run it once with -e uptime_kuma_fresh_instance=true
 tests/dev/up.sh down     # tears it down
 ```
 
