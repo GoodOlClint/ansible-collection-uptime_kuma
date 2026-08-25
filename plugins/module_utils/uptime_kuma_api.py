@@ -16,6 +16,7 @@ __metaclass__ = type
 
 import json
 import threading
+from urllib.parse import quote
 
 from ansible.module_utils.urls import open_url
 
@@ -82,13 +83,16 @@ _MONITOR_READONLY = {"tags", "childrenIDs", "path", "pathName", "maintenance",
                      "screenshot", "dns_last_result", "includeSensitiveData"}
 
 
-# Per-attempt ack timeout for retried requests; must exceed the server's password
-# login latency (~3.5 s on Uptime Kuma 2.5), see _call.
-_RETRY_TIMEOUT = 10
-
-
 class UptimeKumaError(Exception):
-    """Raised when the server answers ``ok: false`` or does not answer."""
+    """Raised when the server answers ``ok: false`` or the transport fails."""
+
+
+class UptimeKumaTimeout(UptimeKumaError):
+    """Raised when the server does not answer within ``api_timeout``."""
+
+
+class UptimeKumaServerError(UptimeKumaError):
+    """Raised when the server answers ``ok: false``."""
 
 
 def uptime_kuma_argument_spec():
@@ -136,6 +140,12 @@ class UptimeKumaClient:
             self._sio.connect(self.url, wait_timeout=self.timeout)
         except socketio.exceptions.SocketIOError as exc:
             module.fail_json(msg=f"Failed to connect to Uptime Kuma at {self.url}: {exc}")
+        # The server registers its event handlers only after pushing ``info``
+        # (louislam/uptime-kuma#7710); anything sent before that is dropped.
+        if not self._events["info"].wait(self.timeout):
+            self.disconnect()
+            module.fail_json(msg=f"Connected to {self.url} but no 'info' event arrived within {self.timeout}s; "
+                                 "is this an Uptime Kuma 2.x instance?")
 
         if login:
             self._authenticate(params)
@@ -163,6 +173,8 @@ class UptimeKumaClient:
                     "token": "",
                 }, retry=True)
                 self.token = reply.get("token")
+                if not self.token:
+                    raise UptimeKumaError("login succeeded but returned no token (2FA enabled on this account?)")
         except UptimeKumaError as exc:
             self.disconnect()
             self.module.fail_json(msg=f"Authentication failed: {exc}")
@@ -178,26 +190,24 @@ class UptimeKumaClient:
     def _call(self, event, *args, retry=False):
         """Emit *event* and return its ack; raise on ``ok: false``.
 
-        The server registers its handlers only after an awaited ``info`` push,
-        so the first requests after connect can be dropped; ``retry`` re-sends
-        idempotent ones (login, loginByToken, needSetup, setup). Each attempt
-        waits ``_RETRY_TIMEOUT``, not ``api_timeout``: it must be long enough
-        for a real reply (a password login takes ~3.5 s on 2.5, and a timed-out
-        login still succeeds server-side and consumes the 20/min budget) but
-        short enough that a genuinely dropped request is re-sent promptly.
+        ``retry`` re-sends an idempotent request once if its ack times out.
+        Password logins are rate-limited (20/min) and a timed-out login still
+        succeeds server-side, so the retry is bounded to a single re-send.
         """
         data = args[0] if len(args) == 1 else (args or None)
-        attempts = 5 if retry else 1
+        attempts = 2 if retry else 1
         for attempt in range(attempts):
             try:
-                reply = self._sio.call(event, data, timeout=(_RETRY_TIMEOUT if retry else self.timeout))
+                reply = self._sio.call(event, data, timeout=self.timeout)
                 break
             except socketio.exceptions.TimeoutError as exc:
                 if attempt == attempts - 1:
-                    raise UptimeKumaError(f"Timed out waiting for '{event}' reply") from exc
+                    raise UptimeKumaTimeout(f"Timed out waiting for '{event}' reply") from exc
+            except socketio.exceptions.SocketIOError as exc:
+                raise UptimeKumaError(f"Transport error during '{event}': {exc}") from exc
         if isinstance(reply, dict) and "ok" in reply:
             if not reply["ok"]:
-                raise UptimeKumaError(reply.get("msg") or f"'{event}' failed")
+                raise UptimeKumaServerError(reply.get("msg") or f"'{event}' failed")
             reply = dict(reply)
             reply.pop("ok")
         return reply
@@ -209,20 +219,16 @@ class UptimeKumaClient:
             self._events[name].clear()
             self._call(getter)
         if not self._events[name].wait(self.timeout):
-            raise UptimeKumaError(f"Timed out waiting for '{name}' event")
+            raise UptimeKumaTimeout(f"Timed out waiting for '{name}' event")
         return self._lists.get(name)
 
     def _expect(self, name, func):
         """Run *func* and wait for the server to re-push list *name*."""
         self._events[name].clear()
         result = func()
-        self._events[name].wait(self.timeout)
+        if not self._events[name].wait(self.timeout):
+            raise UptimeKumaTimeout(f"Timed out waiting for '{name}' to be re-pushed")
         return result
-
-    @property
-    def version(self):
-        self._events["info"].wait(self.timeout)
-        return (self._lists.get("info") or {}).get("version")
 
     # ── setup ───────────────────────────────────────────────────────────
 
@@ -230,7 +236,7 @@ class UptimeKumaClient:
         return bool(self._call("needSetup", retry=True))
 
     def setup(self, username, password):
-        return self._call("setup", username, password, retry=True)
+        return self._call("setup", username, password)
 
     # ── monitors ────────────────────────────────────────────────────────
 
@@ -355,22 +361,22 @@ class UptimeKumaClient:
 
     # ── status pages ────────────────────────────────────────────────────
 
-    def get_status_pages(self):
-        """Status pages as pushed at login; the server never re-pushes this list."""
-        return list((self._list("statusPageList", refresh=False) or {}).values())
-
     def get_status_page_config(self, slug):
-        """Return the page config for *slug*, or None if no such page."""
+        """Return the page config for *slug*, or None if the server says there is no such page."""
         try:
             return self._call("getStatusPage", slug)["config"]
-        except UptimeKumaError:
+        except UptimeKumaServerError:
             return None
 
     def get_status_page(self, slug):
         config = self._call("getStatusPage", slug)["config"]
-        resp = open_url(f"{self.url}/api/status-page/{slug}", timeout=self.timeout,
-                        validate_certs=self.module.params.get("validate_certs", True))
-        public = json.loads(resp.read())
+        url = f"{self.url}/api/status-page/{quote(slug, safe='')}"
+        try:
+            with open_url(url, timeout=self.timeout,
+                          validate_certs=self.module.params.get("validate_certs", True)) as resp:
+                public = json.loads(resp.read())
+        except Exception as exc:  # noqa: BLE001  (urls.py raises its own hierarchy plus http.client's)
+            raise UptimeKumaError(f"Could not read the public status page at {url}: {exc}") from exc
         config.update(public.get("config") or {})
         return {
             **config,
@@ -428,12 +434,6 @@ class UptimeKumaClient:
     def delete_maintenance(self, maintenance_id):
         return self._call("deleteMaintenance", maintenance_id)
 
-    def pause_maintenance(self, maintenance_id):
-        return self._call("pauseMaintenance", maintenance_id)
-
-    def resume_maintenance(self, maintenance_id):
-        return self._call("resumeMaintenance", maintenance_id)
-
     # ── api keys ────────────────────────────────────────────────────────
 
     def get_api_keys(self):
@@ -456,18 +456,19 @@ class UptimeKumaClient:
                 return key
         return None
 
+    # apiKeyList has a getter, so the next get_api_keys() refreshes it; no need to wait for the push here,
+    # and waiting after addAPIKey could discard the ack that carries the one-time key.
     def add_api_key(self, name, expires, active):
-        data = {"name": name, "expires": expires, "active": 1 if active else 0}
-        return self._expect("apiKeyList", lambda: self._call("addAPIKey", data))
+        return self._call("addAPIKey", {"name": name, "expires": expires, "active": 1 if active else 0})
 
     def enable_api_key(self, key_id):
-        return self._expect("apiKeyList", lambda: self._call("enableAPIKey", key_id))
+        return self._call("enableAPIKey", key_id)
 
     def disable_api_key(self, key_id):
-        return self._expect("apiKeyList", lambda: self._call("disableAPIKey", key_id))
+        return self._call("disableAPIKey", key_id)
 
     def delete_api_key(self, key_id):
-        return self._expect("apiKeyList", lambda: self._call("deleteAPIKey", key_id))
+        return self._call("deleteAPIKey", key_id)
 
     # ── settings ────────────────────────────────────────────────────────
 
@@ -522,7 +523,8 @@ def scrub(data, keys):
 
 def _comparable(value):
     value = serialize_value(value)
-    if isinstance(value, dict) and value and all(v is True for v in value.values()):
+    if isinstance(value, dict) and value and all(v is True for v in value.values()) \
+            and all(str(k).isdecimal() for k in value):
         return sorted(int(k) for k in value)
     if isinstance(value, list) and all(isinstance(v, int) for v in value):
         return sorted(value)
