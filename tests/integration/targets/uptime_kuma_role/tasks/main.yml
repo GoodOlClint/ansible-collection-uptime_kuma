@@ -1,6 +1,13 @@
 ---
 - name: Test the uptime_kuma role
   block:
+    - name: Precondition retention so the role's value is a real change
+      goodolclint.uptime_kuma.uptime_kuma_settings:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        keep_data_period_days: 121
+        state: present
+
     - name: Apply the role
       ansible.builtin.include_role:
         name: goodolclint.uptime_kuma.uptime_kuma
