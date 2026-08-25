@@ -8,79 +8,22 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from unittest.mock import MagicMock, patch
-
-
-def _run_module(module_args, check_mode=False):
-    """Helper to execute the tag module with mocked dependencies."""
-    from plugins.modules import uptime_kuma_tag
-
-    mock_module = MagicMock()
-    mock_module.params = {
-        "api_url": "http://localhost:3001",
-        "api_username": "admin",
-        "api_password": "secret",
-        "api_token": None,
-        "validate_certs": True,
-        "api_timeout": 10,
-        "state": "present",
-        "name": "test-tag",
-        "color": "#ff0000",
-    }
-    mock_module.params.update(module_args)
-    mock_module.check_mode = check_mode
-
-    # Capture exit_json / fail_json calls
-    result = {}
-
-    def mock_exit_json(**kwargs):
-        result.update(kwargs)
-        result["failed"] = False
-
-    def mock_fail_json(**kwargs):
-        result.update(kwargs)
-        result["failed"] = True
-
-    mock_module.exit_json = mock_exit_json
-    mock_module.fail_json = mock_fail_json
-
-    mock_client = MagicMock()
-
-    with patch.object(uptime_kuma_tag, "UptimeKumaClient", return_value=mock_client):
-        uptime_kuma_tag._run(mock_module, mock_client)
-
-    return result, mock_client
+from unittest.mock import MagicMock
 
 
 class TestTagPresent:
     def test_create_new_tag(self):
         """Create a tag when it does not exist."""
-        result, client = _run_module({"name": "new-tag", "color": "#ff0000"})
-        client.get_tag_by_name.return_value = None
-        client.add_tag.return_value = {"id": 1, "name": "new-tag", "color": "#ff0000"}
-
-        # Re-run with properly configured mocks
-        result, client = _run_module({"name": "new-tag", "color": "#ff0000"})
-        client.get_tag_by_name.return_value = None
-        client.add_tag.return_value = {"id": 1, "name": "new-tag", "color": "#ff0000"}
         from plugins.modules import uptime_kuma_tag
 
         mock_module = MagicMock()
-        mock_module.params = {
-            "api_url": "http://localhost:3001",
-            "api_username": "admin",
-            "api_password": "secret",
-            "api_token": None,
-            "validate_certs": True,
-            "api_timeout": 10,
-            "state": "present",
-            "name": "new-tag",
-            "color": "#ff0000",
-        }
+        mock_module.params = {"state": "present", "name": "new-tag", "color": "#ff0000"}
         mock_module.check_mode = False
         exit_result = {}
         mock_module.exit_json = lambda **kw: exit_result.update(kw)
-        mock_module.fail_json = lambda **kw: exit_result.update(kw, failed=True)
+        client = MagicMock()
+        client.get_tag_by_name.return_value = None
+        client.add_tag.return_value = {"id": 1, "name": "new-tag", "color": "#ff0000"}
 
         uptime_kuma_tag._run(mock_module, client)
         assert exit_result.get("changed") is True

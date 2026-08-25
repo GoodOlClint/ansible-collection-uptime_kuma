@@ -1,6 +1,24 @@
 ---
 - name: Test uptime_kuma_monitor module
   block:
+    - name: Create a monitor in check mode
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor
+        monitor_type: http
+        url: https://example.com
+        state: present
+      check_mode: true
+      register: check_create
+
+    - name: Verify check mode predicted a creation without creating
+      ansible.builtin.assert:
+        that:
+          - check_create is changed
+          - check_create.monitor.name == "integration-test-monitor"
+          - check_create.diff.before == {}
+
     # ── CREATE ────────────────────────────────────────────────────────
     - name: Create an HTTP monitor
       goodolclint.uptime_kuma.uptime_kuma_monitor:
@@ -50,10 +68,54 @@
         state: present
       register: update_result
 
-    - name: Verify monitor was updated
+    - name: Update monitor interval again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor
+        monitor_type: http
+        url: https://example.com
+        interval: 300
+        state: present
+      register: update_idem
+
+    - name: Verify the update persisted
       ansible.builtin.assert:
         that:
           - update_result is changed
+          - update_result.monitor.interval == 300
+          - update_idem is not changed
+
+    - name: Pause the monitor
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor
+        monitor_type: http
+        url: https://example.com
+        interval: 300
+        active: false
+        state: present
+      register: pause_result
+
+    - name: Pause again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-monitor
+        monitor_type: http
+        url: https://example.com
+        interval: 300
+        active: false
+        state: present
+      register: pause_idem
+
+    - name: Verify pause
+      ansible.builtin.assert:
+        that:
+          - pause_result is changed
+          - pause_result.monitor.active is false
+          - pause_idem is not changed
 
     # ── CREDENTIALS ───────────────────────────────────────────────────
     - name: Create a database monitor with a connection string

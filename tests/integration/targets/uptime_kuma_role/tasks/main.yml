@@ -1,0 +1,119 @@
+---
+- name: Test the uptime_kuma role
+  block:
+    - name: Apply the role
+      ansible.builtin.include_role:
+        name: goodolclint.uptime_kuma.uptime_kuma
+      vars:
+        uptime_kuma_notifications:
+          - name: integration-role-webhook
+            notification_type: webhook
+            notification_config:
+              webhookURL: https://example.com/role-hook
+              webhookContentType: "application/json"
+        uptime_kuma_tags:
+          - name: integration-role-tag
+            color: "#123456"
+        uptime_kuma_monitor_defaults:
+          interval: 120
+          notification_names: [integration-role-webhook]
+        uptime_kuma_monitors:
+          - name: integration-role-monitor
+            monitor_type: http
+            url: https://example.com
+          - name: integration-role-monitor-2
+            monitor_type: http
+            url: https://example.org
+            interval: 300
+        uptime_kuma_monitor_tags:
+          - monitor_name: integration-role-monitor
+            tag_name: integration-role-tag
+
+    - name: Re-apply each managed resource directly to prove the role converged
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: "{{ item.name }}"
+        monitor_type: http
+        url: "{{ item.url }}"
+        interval: "{{ item.interval }}"
+        notification_names: [integration-role-webhook]
+        state: present
+      loop:
+        - {name: integration-role-monitor, url: "https://example.com", interval: 120}
+        - {name: integration-role-monitor-2, url: "https://example.org", interval: 300}
+      loop_control:
+        loop_var: item
+      register: monitors
+
+    - name: Verify defaults merged under each monitor and nothing drifted
+      ansible.builtin.assert:
+        that:
+          - monitors.results | map(attribute='changed') | select | list | length == 0
+          - monitors.results[0].monitor.interval == 120
+          - monitors.results[1].monitor.interval == 300
+
+    - name: Verify the tag assignment converged
+      goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        monitor_name: integration-role-monitor
+        tag_name: integration-role-tag
+        state: present
+      register: role_tag
+
+    - name: Verify the notification and tag converged
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-role-webhook
+        notification_type: webhook
+        notification_config:
+          webhookURL: https://example.com/role-hook
+          webhookContentType: "application/json"
+        state: present
+      register: role_notification
+
+    - name: Verify the tag converged
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-role-tag
+        color: "#123456"
+        state: present
+      register: role_tag_obj
+
+    - name: Verify no drift on anything the role created
+      ansible.builtin.assert:
+        that:
+          - role_tag is not changed
+          - role_notification is not changed
+          - role_tag_obj is not changed
+
+  always:
+    - name: Clean up monitors
+      goodolclint.uptime_kuma.uptime_kuma_monitor:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: "{{ monitor_name }}"
+        state: absent
+      loop: [integration-role-monitor, integration-role-monitor-2]
+      loop_control:
+        loop_var: monitor_name
+      failed_when: false
+
+    - name: Clean up tag and notification
+      goodolclint.uptime_kuma.uptime_kuma_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-role-tag
+        state: absent
+      failed_when: false
+
+    - name: Clean up notification
+      goodolclint.uptime_kuma.uptime_kuma_notification:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-role-webhook
+        state: absent
+      failed_when: false

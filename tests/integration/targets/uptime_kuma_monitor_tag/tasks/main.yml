@@ -58,10 +58,21 @@
         state: absent
       register: remove_result
 
+    - name: Remove tag again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_monitor_tag:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        tag_name: integration-test-monitor-tag
+        monitor_name: integration-test-monitor-for-tag
+        value: test-value
+        state: absent
+      register: remove_idem
+
     - name: Verify tag was removed
       ansible.builtin.assert:
         that:
           - remove_result is changed
+          - remove_idem is not changed
 
   always:
     - name: Cleanup monitor

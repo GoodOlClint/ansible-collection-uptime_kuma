@@ -53,10 +53,32 @@
         state: present
       register: disable_result
 
-    - name: Verify API key was disabled
+    - name: Disable again (idempotency)
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        active: false
+        state: present
+      register: disable_idem
+
+    - name: Re-enable the key
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        active: true
+        state: present
+      register: enable_result
+
+    - name: Verify disable persisted and enable works
       ansible.builtin.assert:
         that:
           - disable_result is changed
+          - disable_result.api_key.active is false
+          - disable_idem is not changed
+          - enable_result is changed
+          - enable_result.api_key.active is true
 
     - name: Delete API key
       goodolclint.uptime_kuma.uptime_kuma_api_key:
