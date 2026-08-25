@@ -19,11 +19,13 @@
     api_username: "{{ uptime_kuma_api_username }}"
     api_password: "{{ uptime_kuma_api_password }}"
   register: _uptime_kuma_login
+  no_log: true
   when: uptime_kuma_api_token | length == 0
 
 - name: Use the session token for every task
   ansible.builtin.set_fact:
     _uptime_kuma_token: "{{ uptime_kuma_api_token if uptime_kuma_api_token | length > 0 else _uptime_kuma_login.token }}"
+  no_log: true
 
 - name: Manage notifications
   goodolclint.uptime_kuma.uptime_kuma_notification:
@@ -163,6 +165,8 @@
   loop: "{{ uptime_kuma_api_keys }}"
   loop_control:
     label: "{{ item.name }}"
+  register: uptime_kuma_api_keys_result
+  no_log: true
 
 - name: Update settings
   goodolclint.uptime_kuma.uptime_kuma_settings:

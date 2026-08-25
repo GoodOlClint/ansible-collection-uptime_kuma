@@ -121,10 +121,12 @@ options:
   body:
     description:
       - HTTP body for POST/PUT/PATCH requests.
+      - Treated as no_log.
     type: str
   headers:
     description:
       - HTTP headers as a JSON string.
+      - Treated as no_log (it commonly carries an Authorization header).
     type: str
   dns_resolve_server:
     description:
@@ -319,7 +321,10 @@ EXAMPLES = r"""
 
 RETURN = r"""
 monitor:
-  description: The monitor object after the operation.
+  description:
+    - The monitor object after the operation.
+    - Every field Uptime Kuma classifies as sensitive (C(headers), C(body), C(basic_auth_pass), C(tlsKey),
+      C(mqttPassword), ...) is omitted.
   returned: success
   type: dict
   sample:
@@ -338,6 +343,7 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
     compute_diff,
     needs_update,
     normalize_result,
+    scrub,
     uptime_kuma_argument_spec,
 )
 
@@ -346,6 +352,23 @@ WRITE_ONLY_FIELDS = {
     "basic_auth_pass", "oauth_client_secret", "radiusPassword",
     "radiusSecret", "mqttPassword", "databaseConnectionString",
 }
+
+# Uptime Kuma's Monitor.toJSON(includeSensitiveData) block, plus gamedigToken; never returned or diffed.
+SENSITIVE_FIELDS = WRITE_ONLY_FIELDS | {
+    "headers", "body", "grpcBody", "grpcMetadata", "basic_auth_user", "oauth_client_id",
+    "oauth_token_url", "oauth_scopes", "oauth_audience", "oauth_auth_method", "bearer_token", "pushToken",
+    "radiusUsername", "mqttUsername", "mqttWebsocketPath", "authWorkstation", "authDomain",
+    "tlsCa", "tlsCert", "tlsKey", "kafkaProducerSaslOptions", "rabbitmqUsername",
+    "rabbitmqPassword", "gamedigToken",
+}
+
+
+def _out(monitor):
+    return normalize_result(scrub(monitor, SENSITIVE_FIELDS))
+
+
+def _diff(before, after):
+    return compute_diff(before, after, exclude_keys=SENSITIVE_FIELDS)
 
 
 def build_monitor_params(module):
@@ -463,14 +486,14 @@ def _run(module, client):
         if module.check_mode:
             module.exit_json(
                 changed=True,
-                diff=compute_diff(existing, None),
-                monitor=normalize_result(existing),
+                diff=_diff(existing, None),
+                monitor=_out(existing),
             )
             return
         client.delete_monitor(existing["id"])
         module.exit_json(
             changed=True,
-            diff=compute_diff(existing, None),
+            diff=_diff(existing, None),
             monitor={},
         )
         return
@@ -481,7 +504,7 @@ def _run(module, client):
     if existing is None:
         # Create
         if module.check_mode:
-            module.exit_json(changed=True, diff=compute_diff(None, kwargs), monitor=kwargs)
+            module.exit_json(changed=True, diff=_diff(None, kwargs), monitor=_out(kwargs))
             return
         result = client.add_monitor(**kwargs)
         monitor_id = result.get("monitorID")
@@ -491,8 +514,8 @@ def _run(module, client):
             client.pause_monitor(monitor_id)
         module.exit_json(
             changed=True,
-            diff=compute_diff(None, new_monitor),
-            monitor=normalize_result(new_monitor),
+            diff=_diff(None, new_monitor),
+            monitor=_out(new_monitor),
         )
         return
 
@@ -508,8 +531,8 @@ def _run(module, client):
             after.update(kwargs)
             module.exit_json(
                 changed=True,
-                diff=compute_diff(existing, after),
-                monitor=normalize_result(after),
+                diff=_diff(existing, after),
+                monitor=_out(after),
             )
             return
         client.edit_monitor(monitor_id, **kwargs)
@@ -528,10 +551,10 @@ def _run(module, client):
 
     if changed:
         updated = client.get_monitor(monitor_id) if not module.check_mode else existing
-        diff_data = compute_diff(existing, updated)
-        module.exit_json(changed=True, diff=diff_data, monitor=normalize_result(updated))
+        diff_data = _diff(existing, updated)
+        module.exit_json(changed=True, diff=diff_data, monitor=_out(updated))
     else:
-        module.exit_json(changed=False, monitor=normalize_result(existing))
+        module.exit_json(changed=False, monitor=_out(existing))
 
 
 def main():
@@ -564,8 +587,8 @@ def main():
             type="str", default="GET",
             choices=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
         ),
-        body=dict(type="str"),
-        headers=dict(type="str"),
+        body=dict(type="str", no_log=True),
+        headers=dict(type="str", no_log=True),
         dns_resolve_server=dict(type="str"),
         dns_resolve_type=dict(
             type="str",

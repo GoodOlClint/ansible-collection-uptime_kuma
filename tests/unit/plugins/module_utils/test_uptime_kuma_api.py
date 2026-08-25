@@ -233,3 +233,11 @@ def test_needs_update_notification_id_list_dict_vs_list():
     current = {"notificationIDList": {"1": True, "3": True}}
     assert needs_update(current, {"notificationIDList": [3, 1]}) is False
     assert needs_update(current, {"notificationIDList": [1]}) is True
+
+
+# ── scrub ───────────────────────────────────────────────────────────────
+
+def test_scrub_drops_keys_and_passes_empty_through():
+    assert uptime_kuma_api.scrub({"a": 1, "secret": 2}, {"secret"}) == {"a": 1}
+    assert uptime_kuma_api.scrub(None, {"secret"}) is None
+    assert uptime_kuma_api.scrub({}, {"secret"}) == {}

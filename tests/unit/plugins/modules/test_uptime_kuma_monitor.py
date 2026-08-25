@@ -298,3 +298,47 @@ def test_optional_type_params_carry_no_argument_spec_default():
             pass
     for key in ("dns_resolve_server", "dns_resolve_type", "json_path_operator"):
         assert "default" not in captured[key], key
+
+
+class TestMonitorSecrets:
+    SERVER = {"id": 7, "name": "test-monitor", "type": "http", "url": "https://example.com", "active": True,
+              "basic_auth_pass": "hunter2", "tlsKey": "-----BEGIN", "pushToken": "tok",
+              "headers": '{"Authorization": "Bearer x"}', "grpcMetadata": "k=v", "bearer_token": "b"}
+
+    @staticmethod
+    def _assert_scrubbed(result):
+        for key in ("basic_auth_pass", "tlsKey", "pushToken", "headers", "grpcMetadata", "bearer_token"):
+            assert key not in result["monitor"]
+            for side in result.get("diff", {}).values():
+                assert key not in side
+
+    def test_create_result_omits_server_side_credentials(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client()
+        client.get_monitor_by_name.return_value = None
+        client.add_monitor.return_value = {"monitorID": 7}
+        client.get_monitor.return_value = self.SERVER
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        assert result["monitor"]["url"] == "https://example.com"
+        self._assert_scrubbed(result)
+
+    def test_delete_diff_omits_server_side_credentials(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"state": "absent"})
+        client.get_monitor_by_name.return_value = self.SERVER
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is True
+        self._assert_scrubbed(result)
+
+    def test_unchanged_result_omits_server_side_credentials(self):
+        from plugins.modules import uptime_kuma_monitor
+        module, client, result = _make_module_and_client({"url": "https://example.com"})
+        client.get_monitor_by_name.return_value = dict(
+            self.SERVER, interval=60, retryInterval=60, maxretries=1, upsideDown=False, timeout=48,
+            resendInterval=0, invertKeyword=False, method="GET", ignoreTls=False, maxredirects=10,
+            accepted_statuscodes=["200-299"], dns_resolve_server="1.1.1.1", dns_resolve_type="A",
+            jsonPathOperator="==")
+        uptime_kuma_monitor._run(module, client)
+        assert result["changed"] is False
+        self._assert_scrubbed(result)

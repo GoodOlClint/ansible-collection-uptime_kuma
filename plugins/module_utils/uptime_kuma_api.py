@@ -513,6 +513,13 @@ def compute_diff(before, after, exclude_keys=None):
     }
 
 
+def scrub(data, keys):
+    """Return *data* without *keys* (for results that must not carry credentials)."""
+    if not isinstance(data, dict):
+        return data
+    return {k: v for k, v in data.items() if k not in keys}
+
+
 def _comparable(value):
     value = serialize_value(value)
     if isinstance(value, dict) and value and all(v is True for v in value.values()):
