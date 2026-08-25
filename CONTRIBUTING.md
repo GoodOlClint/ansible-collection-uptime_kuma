@@ -90,7 +90,7 @@ These are the same commands CI runs; all of them must pass before a PR is opened
 ### Unit tests (with the module_utils coverage floor)
 
 ```bash
-python -m pytest tests/unit/ --cov=plugins/module_utils --cov-fail-under=40
+python -m pytest tests/unit/ --cov=plugins/module_utils --cov-fail-under=80
 ```
 
 ### Sanity

@@ -1,0 +1,29 @@
+bugfixes:
+  - >-
+    client - waits for the server's ``info`` event before sending anything (Uptime Kuma registers
+    its handlers only after that push, louislam/uptime-kuma#7710), so the first request is no longer
+    dropped and retried blind. Retried requests (``login``, ``loginByToken``, ``needSetup``) now
+    wait ``api_timeout`` per attempt and re-send at most once, so a slow instance cannot burn the
+    20/min password-login budget from a single task.
+  - >-
+    client - ``setup`` is no longer retried; a retry after a slow first-boot ack reported failure on
+    a run that had succeeded.
+  - >-
+    client - Socket.IO transport errors (connection dropped, namespace not connected) and HTTP/JSON
+    errors when reading a public status page now fail with a message instead of a traceback.
+  - >-
+    uptime_kuma_status_page - an ``api_timeout`` on the lookup is now reported as a timeout instead
+    of being treated as "page does not exist" (which made ``state=present`` try to create a
+    duplicate and ``state=absent`` silently skip).
+  - >-
+    client - a missing list re-push after a mutation now reports a timeout instead of a misleading
+    "not found".
+  - >-
+    uptime_kuma_login - a login that succeeds without returning a token (2FA-enabled account) now
+    fails instead of returning ``token: null``.
+  - >-
+    client - the status page slug is URL-encoded in the public endpoint path.
+minor_changes:
+  - >-
+    client - removed the unused ``version`` property and ``get_status_pages``, ``pause_maintenance``
+    and ``resume_maintenance`` methods.
