@@ -133,7 +133,7 @@
           - role_tag_obj is not changed
           - role_page is not changed
           - role_page.status_page.showTags is true
-          - role_page.status_page.customCSS == "body { color: red; }"
+          - 'role_page.status_page.customCSS == "body { color: red; }"'
           - role_maintenance is not changed
           - role_maintenance.maintenance.cron == "0 5 * * *"
           - role_maintenance.maintenance.durationMinutes == 45
