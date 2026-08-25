@@ -114,7 +114,7 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
 def _find_monitor_tag(monitor, tag_id, value):
     """Check if a monitor has a specific tag assignment."""
     for tag in monitor.get("tags", []):
-        if tag.get("tag_id") == tag_id and tag.get("value", "") == value:
+        if tag.get("tag_id") == tag_id and (tag.get("value") or "") == (value or ""):
             return tag
     return None
 
@@ -156,6 +156,10 @@ def _run(module, client):
     if state == "absent":
         if existing is None:
             module.exit_json(changed=False, monitor_tag={})
+            return
+        if existing.get("value") is None:
+            module.fail_json(msg=f"Tag '{tag_name}' is assigned to '{monitor_name}' with an empty (NULL) value, which "
+                                 "Uptime Kuma's deleteMonitorTag cannot match; remove it in the UI")
             return
         if module.check_mode:
             module.exit_json(changed=True, monitor_tag=result_data)
