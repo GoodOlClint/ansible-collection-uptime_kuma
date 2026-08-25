@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+.coverage
+tests/output/
 *.egg-info/
 
 # Ansible build artifacts
