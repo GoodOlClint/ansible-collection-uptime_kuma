@@ -7,6 +7,7 @@
         api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         active: true
+        expires: "2035-01-01 00:00:00"
         state: present
       register: create_result
 
@@ -23,8 +24,20 @@
         api_token: "{{ uptime_kuma_api_token }}"
         name: integration-test-api-key
         active: true
+        expires: "2035-01-01 00:00:00"
         state: present
       register: idem_result
+
+    - name: Ask for a different expiry (must fail, not silently ignore)
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        active: true
+        expires: "2036-01-01 00:00:00"
+        state: present
+      register: expiry_result
+      failed_when: expiry_result is not failed
 
     - name: Verify no change on second run
       ansible.builtin.assert:
@@ -70,3 +83,12 @@
       ansible.builtin.assert:
         that:
           - delete_idem is not changed
+
+  always:
+    - name: Clean up
+      goodolclint.uptime_kuma.uptime_kuma_api_key:
+        api_url: "{{ uptime_kuma_api_url }}"
+        api_token: "{{ uptime_kuma_api_token }}"
+        name: integration-test-api-key
+        state: absent
+      failed_when: false

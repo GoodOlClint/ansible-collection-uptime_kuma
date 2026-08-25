@@ -28,7 +28,9 @@ options:
   expires:
     description:
       - Expiration date and time as a string (e.g. C(2025-12-31 23:59:00)).
-      - Set to C(null) or omit to create a key that does not expire.
+      - Set to C(null) to create a key that does not expire; omitting it leaves an existing key's expiry alone.
+      - Uptime Kuma cannot change an existing key's expiry; if it differs the module fails and the key
+        must be removed (O(state=absent)) and recreated.
     type: str
   active:
     description:
@@ -124,6 +126,8 @@ key:
   sample: uk1_9XPRjV7ilGj9CvWRKYiBPq9GLtQs74UzTxKfCxWY
 """
 
+from datetime import datetime, timezone
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kuma_api import (
     UptimeKumaClient,
@@ -132,6 +136,15 @@ from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kum
     normalize_result,
     uptime_kuma_argument_spec,
 )
+
+
+def _instant(value):
+    """Expiry strings as the server stores them (verbatim) or as the UI sends them (ISO 8601), made comparable."""
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return value
+    return parsed.astimezone(timezone.utc).replace(tzinfo=None) if parsed.tzinfo else parsed
 
 
 def run_module(module):
@@ -187,7 +200,12 @@ def _run(module, client):
         )
         return
 
-    # Key exists — check if active state matches
+    expires = module.params.get("expires")
+    if expires is not None and _instant(existing.get("expires")) != _instant(expires):
+        module.fail_json(msg=f"API key '{name}' exists with expires={existing.get('expires')!r}; Uptime Kuma cannot "
+                             "change a key's expiry. Remove it with state=absent and recreate it.")
+        return
+
     changed = False
     is_active = existing.get("active", False)
 
