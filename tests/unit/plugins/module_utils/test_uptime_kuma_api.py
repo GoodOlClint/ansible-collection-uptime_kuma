@@ -132,6 +132,18 @@ def test_retried_call_resends_once_with_the_module_timeout():
     assert all(c.kwargs["timeout"] == 30 for c in sio.call.call_args_list)
 
 
+def test_retried_call_waits_at_least_ten_seconds_per_attempt():
+    sio = MagicMock()
+    sio.call.side_effect = [socketio.exceptions.TimeoutError(), {"ok": True}]
+    _client(sio, timeout=3)._call("login", {}, retry=True)
+    assert [c.kwargs["timeout"] for c in sio.call.call_args_list] == [10, 10]
+
+    sio.call.side_effect = None
+    sio.call.return_value = {"ok": True}
+    _client(sio, timeout=3)._call("add", {})
+    assert sio.call.call_args.kwargs["timeout"] == 3
+
+
 def test_retried_call_gives_up_after_two_attempts():
     sio = MagicMock()
     sio.call.side_effect = socketio.exceptions.TimeoutError()
@@ -350,6 +362,17 @@ def test_status_page_http_errors_are_translated_and_slug_is_quoted(monkeypatch):
     with pytest.raises(uptime_kuma_api.UptimeKumaError, match="proxy says no"):
         _client(sio).get_status_page("a b")
     assert seen["url"] == "http://kuma/api/status-page/a%20b"
+
+
+def test_status_page_non_object_body_is_translated(monkeypatch):
+    sio = MagicMock()
+    sio.call.return_value = {"ok": True, "config": {"slug": "s"}}
+    resp = MagicMock()
+    resp.read.return_value = b"[]"
+    resp.__enter__.return_value = resp
+    monkeypatch.setattr(uptime_kuma_api, "open_url", lambda url, **kw: resp)
+    with pytest.raises(uptime_kuma_api.UptimeKumaError, match="expected a JSON object, got list"):
+        _client(sio).get_status_page("s")
 
 
 # ── comparison helpers ──────────────────────────────────────────────────
