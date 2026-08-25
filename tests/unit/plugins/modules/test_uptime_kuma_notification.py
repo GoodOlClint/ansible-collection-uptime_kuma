@@ -93,3 +93,29 @@ def test_no_change_still_scrubs():
     uptime_kuma_notification._run(module, client)
     assert result["changed"] is False
     _no_secret(result)
+
+
+def test_config_drift_is_applied():
+    module, result = _module(notification_config={"smtpHost": "new.example.com", "smtpPassword": "hunter2"})
+    client = MagicMock()
+    client.get_notification_by_name.return_value = SERVER
+    client.get_notification.return_value = dict(SERVER, smtpHost="new.example.com")
+    uptime_kuma_notification._run(module, client)
+    assert result["changed"] is True
+    assert client.edit_notification.call_args.kwargs["smtpHost"] == "new.example.com"
+
+
+def test_credential_rotation_is_applied_once():
+    module, result = _module(notification_config={"smtpHost": "mail.example.com", "smtpPassword": "rotated"})
+    client = MagicMock()
+    client.get_notification_by_name.return_value = SERVER
+    client.get_notification.return_value = dict(SERVER, smtpPassword="rotated")
+    uptime_kuma_notification._run(module, client)
+    assert result["changed"] is True
+    assert client.edit_notification.call_args.kwargs["smtpPassword"] == "rotated"
+    _no_secret(result)
+
+    module, result = _module(notification_config={"smtpHost": "mail.example.com", "smtpPassword": "rotated"})
+    client.get_notification_by_name.return_value = dict(SERVER, smtpPassword="rotated")
+    uptime_kuma_notification._run(module, client)
+    assert result["changed"] is False
