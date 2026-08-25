@@ -4,3 +4,5 @@
 uptime_kuma_api_url: "http://localhost:3001"
 uptime_kuma_api_username: "admin"
 uptime_kuma_api_password: "Ansible-Dev-Pass-1"
+# true when nothing has run setup yet (CI's service container); tests/dev/up.sh writes the right value
+uptime_kuma_fresh_instance: true

@@ -38,3 +38,11 @@
     name: setup-probe
     color: "#000000"
     state: absent
+
+- name: Verify the first run created the account on a fresh instance
+  ansible.builtin.assert:
+    that:
+      - check is changed
+      - first is changed
+      - first.setup_performed is true
+  when: uptime_kuma_fresh_instance | default(false)
