@@ -21,7 +21,7 @@ attributes:
     support: full
   diff_mode:
     description: Will return details on what has changed (or possibly needs changing in check_mode), when in diff mode.
-    support: none
+    support: full
 description:
   - Assign or remove tags from monitors in Uptime Kuma.
   - Uses the combination of O(tag_name), O(monitor_name), and O(value) as the
@@ -118,6 +118,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.goodolclint.uptime_kuma.plugins.module_utils.uptime_kuma_api import (
     UptimeKumaClient,
     UptimeKumaError,
+    compute_diff,
     normalize_result,
     uptime_kuma_argument_spec,
 )
@@ -174,10 +175,10 @@ def _run(module, client):
                                  "Uptime Kuma's deleteMonitorTag cannot match; remove it in the UI")
             return
         if module.check_mode:
-            module.exit_json(changed=True, monitor_tag=result_data)
+            module.exit_json(changed=True, diff=compute_diff(existing, None), monitor_tag=result_data)
             return
         client.delete_monitor_tag(tag_id, monitor_id, value)
-        module.exit_json(changed=True, monitor_tag={})
+        module.exit_json(changed=True, diff=compute_diff(existing, None), monitor_tag={})
         return
 
     # state == present
@@ -186,11 +187,11 @@ def _run(module, client):
         return
 
     if module.check_mode:
-        module.exit_json(changed=True, monitor_tag=result_data)
+        module.exit_json(changed=True, diff=compute_diff(None, result_data), monitor_tag=result_data)
         return
 
     client.add_monitor_tag(tag_id, monitor_id, value)
-    module.exit_json(changed=True, monitor_tag=result_data)
+    module.exit_json(changed=True, diff=compute_diff(None, result_data), monitor_tag=result_data)
 
 
 def main():

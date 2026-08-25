@@ -41,6 +41,7 @@ def test_assign_idempotent_and_check_mode(run_module):
     client = _client([])
     result, unused = run_module(mod, _params(), client)
     assert result["changed"] is True and result["monitor_tag"] == {"tag_id": 4, "monitor_id": 7, "value": "v"}
+    assert result["diff"] == {"before": {}, "after": {"tag_id": 4, "monitor_id": 7, "value": "v"}}
     client.add_monitor_tag.assert_called_once_with(4, 7, "v")
 
     client = _client([{"tag_id": 4, "value": "v"}])
@@ -57,6 +58,7 @@ def test_remove(run_module):
     client = _client([{"tag_id": 4, "value": "v"}])
     result, unused = run_module(mod, _params(state="absent"), client, check_mode=True)
     assert result["changed"] is True
+    assert result["diff"] == {"before": {"tag_id": 4, "value": "v"}, "after": {}}
     client.delete_monitor_tag.assert_not_called()
 
     result, unused = run_module(mod, _params(state="absent"), client)
