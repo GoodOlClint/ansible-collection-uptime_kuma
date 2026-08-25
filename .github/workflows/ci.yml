@@ -52,7 +52,7 @@ jobs:
           pip install pytest pytest-cov ansible-core 'python-socketio[client]'
 
       - name: Run unit tests
-        run: pytest tests/unit/ -v --cov=plugins/module_utils --cov-report=term-missing --cov-fail-under=40
+        run: pytest tests/unit/ -v --cov=plugins/module_utils --cov-report=term-missing --cov-fail-under=80
 
   sanity:
     name: Sanity
